@@ -74,17 +74,35 @@ export const SHIP_FIELDS: { name: string; type: ViewVariableType }[] = [
   { name: 'tradetype', type: ViewVariableType.String },
 ];
 
-// Build a fresh outputs array with unique keys. Called on init and submit so
-// every node instance owns its own variable keys.
-export const createOutputs = () => [
-  {
-    key: nanoid(),
-    name: OUTPUT_NAME,
-    type: OUTPUT_TYPE,
-    children: SHIP_FIELDS.map(field => ({
+// Path where the selected element field names are persisted in the node data.
+// The backend reads this list (via the canvas exclusive config) to filter the
+// emitted ship objects at runtime.
+export const SELECTED_OUTPUTS_PATH = 'inputs.selectedOutputs';
+
+// All element fields are selected by default so a freshly created node emits
+// the full ship record, matching the previous fixed-output behavior.
+export const DEFAULT_SELECTED_OUTPUTS = SHIP_FIELDS.map(field => field.name);
+
+// Build a fresh outputs array with unique keys, limited to the selected
+// element fields. Called on init, submit, and whenever the selection changes
+// so both the persisted outputs and the downstream-exposed variables stay in
+// sync with the user's choice.
+export const createOutputs = (
+  selected: string[] = DEFAULT_SELECTED_OUTPUTS,
+) => {
+  const selectedSet = new Set(selected);
+  return [
+    {
       key: nanoid(),
-      name: field.name,
-      type: field.type,
-    })),
-  },
-];
+      name: OUTPUT_NAME,
+      type: OUTPUT_TYPE,
+      children: SHIP_FIELDS.filter(field => selectedSet.has(field.name)).map(
+        field => ({
+          key: nanoid(),
+          name: field.name,
+          type: field.type,
+        }),
+      ),
+    },
+  ];
+};

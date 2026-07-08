@@ -29,6 +29,7 @@ import {
 import { type FormData } from './types';
 import { FormRender } from './form';
 import { transformOnInit, transformOnSubmit } from './data-transformer';
+import { SELECTED_OUTPUTS_PATH } from './constants';
 
 const dateRule = /^\d{4}-\d{2}-\d{2}$/;
 const pointsPath = 'inputs.inputParameters.points';
@@ -50,6 +51,13 @@ const validateDateInput = params => {
   }
 };
 
+const validateSelectedOutputs = params => {
+  const { value } = params;
+  if (!Array.isArray(value) || value.length === 0) {
+    return '请至少选择一个输出字段';
+  }
+};
+
 export const MIRAP_AREA_SHIP_FORM_META: FormMetaV2<FormData> = {
   render: () => <FormRender />,
 
@@ -60,6 +68,7 @@ export const MIRAP_AREA_SHIP_FORM_META: FormMetaV2<FormData> = {
     [pointsPath]: validateRequiredInput,
     [startDatePath]: validateDateInput,
     [endDatePath]: validateDateInput,
+    [SELECTED_OUTPUTS_PATH]: validateSelectedOutputs,
   },
 
   effect: {

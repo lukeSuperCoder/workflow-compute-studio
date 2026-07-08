@@ -19,5 +19,10 @@ import { type NodeDataDTO, type ValueExpression } from '@coze-workflow/base';
 export interface FormData extends Omit<NodeDataDTO, 'inputs'> {
   inputs: {
     inputParameters: Record<string, ValueExpression>;
+    /**
+     * Element field names the user chose to emit in each ship object. Only
+     * selected fields are produced at runtime (and exposed downstream).
+     */
+    selectedOutputs: string[];
   };
 }

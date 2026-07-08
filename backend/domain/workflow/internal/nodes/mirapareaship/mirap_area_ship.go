@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,14 +41,41 @@ const (
 	inputEndDate   = "enddate"
 
 	// The node exposes a single fixed output: the ship list (Array<Object>),
-	// whose element carries the fields under the API response's `datas`.
+	// whose element carries a subset of the fields under the API response's
+	// `datas`. Which element fields are emitted is controlled by the
+	// user-selected `selectedOutputs` list.
 	outputShips = "ships"
 )
 
 var endpointURL = "https://mirap-test.elane.com/api/bigData/external_unifiedapi/getMmsiByAreawholeWorld"
 
+// allShipFields is the canonical, ordered list of element fields the API may
+// return. The order is reused for both the declared output type and the
+// emitted map so the two stay in sync.
+var allShipFields = []string{
+	"mmsi", "enName", "age", "countrycode", "shipType", "length", "width", "dwt", "tradetype",
+}
+
+// shipFieldTypes maps each element field to its declared workflow type.
+var shipFieldTypes = map[string]*vo.TypeInfo{
+	"mmsi":        {Type: vo.DataTypeInteger},
+	"enName":      {Type: vo.DataTypeString},
+	"age":         {Type: vo.DataTypeNumber},
+	"countrycode": {Type: vo.DataTypeString},
+	"shipType":    {Type: vo.DataTypeString},
+	"length":      {Type: vo.DataTypeNumber},
+	"width":       {Type: vo.DataTypeNumber},
+	"dwt":         {Type: vo.DataTypeInteger},
+	"tradetype":   {Type: vo.DataTypeString},
+}
+
 type Config struct {
 	EndpointURL string `json:"endpoint_url,omitempty"`
+
+	// SelectedOutputs holds the element field names the user chose to emit.
+	// When empty (e.g. legacy nodes without the field), all known fields are
+	// emitted to preserve the previous behavior.
+	SelectedOutputs []string `json:"selected_outputs,omitempty"`
 }
 
 func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*schema.NodeSchema, error) {
@@ -64,7 +91,8 @@ func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*
 	}
 
 	c.EndpointURL = endpointURL
-	ns.SetOutputType(outputShips, shipsOutputType())
+	c.SelectedOutputs = readSelectedOutputs(n)
+	ns.SetOutputType(outputShips, shipsOutputType(c.SelectedOutputs))
 
 	return ns, nil
 }
@@ -75,14 +103,27 @@ func (c *Config) Build(_ context.Context, _ *schema.NodeSchema, _ ...schema.Buil
 		url = endpointURL
 	}
 	return &Extractor{
-		client:      &http.Client{Timeout: 120 * time.Second},
-		endpointURL: url,
+		client:          &http.Client{Timeout: 120 * time.Second},
+		endpointURL:     url,
+		selectedOutputs: c.SelectedOutputs,
 	}, nil
+}
+
+// readSelectedOutputs returns the user-selected element field names from the
+// canvas node, or nil when the node carries none (legacy data).
+func readSelectedOutputs(n *vo.Node) []string {
+	if n == nil || n.Data.Inputs == nil || n.Data.Inputs.MirapAreaShip == nil {
+		return nil
+	}
+	return n.Data.Inputs.MirapAreaShip.SelectedOutputs
 }
 
 type Extractor struct {
 	client      *http.Client
 	endpointURL string
+
+	// selectedOutputs filters the emitted element fields. Empty means all.
+	selectedOutputs []string
 }
 
 type requestBody struct {
@@ -166,10 +207,12 @@ func (e *Extractor) Invoke(ctx context.Context, input map[string]any) (map[strin
 	// The workflow engine (compose.FillIfNotRequired) requires an Array output
 	// to be []any with map[string]any elements when the element type declares
 	// properties. Convert the typed []ship accordingly, preserving the declared
-	// field types (int64 for integers, float64 for numbers).
+	// field types (int64 for integers, float64 for numbers), and keep only the
+	// user-selected element fields.
+	selected := effectiveSelected(e.selectedOutputs)
 	shipsOut := make([]any, 0, len(parsed.Datas))
 	for i := range parsed.Datas {
-		shipsOut = append(shipsOut, parsed.Datas[i].toMap())
+		shipsOut = append(shipsOut, parsed.Datas[i].toMap(selected))
 	}
 
 	return map[string]any{
@@ -185,9 +228,10 @@ func stringInput(input map[string]any, key string) string {
 }
 
 // toMap renders a ship record as a generic map so the workflow engine can
-// treat the ships output as []any of map[string]any.
-func (s ship) toMap() map[string]any {
-	return map[string]any{
+// treat the ships output as []any of map[string]any. Only the supplied
+// selected fields are included; fields the API did not populate are omitted.
+func (s ship) toMap(selected []string) map[string]any {
+	all := map[string]any{
 		"mmsi":        s.MMSI,
 		"enName":      s.EnName,
 		"age":         s.Age,
@@ -198,26 +242,57 @@ func (s ship) toMap() map[string]any {
 		"dwt":         s.DWT,
 		"tradetype":   s.TradeType,
 	}
+	out := make(map[string]any, len(selected))
+	for _, name := range selected {
+		if value, ok := all[name]; ok {
+			out[name] = value
+		}
+	}
+	return out
+}
+
+// effectiveSelected resolves the element fields to emit. An empty/nil input
+// (legacy nodes, or the user deselecting everything) yields all known fields,
+// preserving the previous behavior. Unknown names are dropped and the
+// canonical ordering is applied.
+func effectiveSelected(selected []string) []string {
+	if len(selected) == 0 {
+		return allShipFields
+	}
+
+	chosen := make(map[string]struct{}, len(selected))
+	for _, name := range selected {
+		chosen[name] = struct{}{}
+	}
+
+	out := make([]string, 0, len(selected))
+	for _, name := range allShipFields {
+		if _, ok := chosen[name]; ok {
+			out = append(out, name)
+		}
+	}
+	if len(out) == 0 {
+		return allShipFields
+	}
+	return out
 }
 
 // shipsOutputType describes the fixed `ships` output: Array<Object> whose
-// element carries the fields under the API response's `datas`.
-func shipsOutputType() *vo.TypeInfo {
+// element carries the user-selected subset of the fields under the API
+// response's `datas`.
+func shipsOutputType(selected []string) *vo.TypeInfo {
+	names := effectiveSelected(selected)
+	properties := make(map[string]*vo.TypeInfo, len(names))
+	for _, name := range names {
+		if t, ok := shipFieldTypes[name]; ok {
+			properties[name] = t
+		}
+	}
 	return &vo.TypeInfo{
 		Type: vo.DataTypeArray,
 		ElemTypeInfo: &vo.TypeInfo{
-			Type: vo.DataTypeObject,
-			Properties: map[string]*vo.TypeInfo{
-				"mmsi":        {Type: vo.DataTypeInteger},
-				"enName":      {Type: vo.DataTypeString},
-				"age":         {Type: vo.DataTypeNumber},
-				"countrycode": {Type: vo.DataTypeString},
-				"shipType":    {Type: vo.DataTypeString},
-				"length":      {Type: vo.DataTypeNumber},
-				"width":       {Type: vo.DataTypeNumber},
-				"dwt":         {Type: vo.DataTypeInteger},
-				"tradetype":   {Type: vo.DataTypeString},
-			},
+			Type:       vo.DataTypeObject,
+			Properties: properties,
 		},
 	}
 }

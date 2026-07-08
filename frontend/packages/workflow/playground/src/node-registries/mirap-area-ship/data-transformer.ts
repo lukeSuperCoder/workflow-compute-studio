@@ -20,15 +20,30 @@ import { type NodeDataDTO, type ValueExpression } from '@coze-workflow/base';
 
 import { getInputIsEmpty } from '../trigger-upsert/utils';
 import { type FormData } from './types';
-import { DEFAULT_INPUT_PARAMETERS, createOutputs } from './constants';
+import {
+  DEFAULT_INPUT_PARAMETERS,
+  DEFAULT_SELECTED_OUTPUTS,
+  createOutputs,
+} from './constants';
+
+// Resolve the persisted selection, falling back to all fields for legacy
+// nodes that predate the selection feature (or have an empty list).
+const resolveSelectedOutputs = (raw: unknown): string[] => {
+  if (Array.isArray(raw) && raw.length > 0) {
+    return raw.filter((v): v is string => typeof v === 'string');
+  }
+  return DEFAULT_SELECTED_OUTPUTS;
+};
 
 export const transformOnInit = (value: NodeDataDTO, context): FormData => {
   if (!value) {
+    const selectedOutputs = DEFAULT_SELECTED_OUTPUTS;
     return {
       inputs: {
         inputParameters: DEFAULT_INPUT_PARAMETERS,
+        selectedOutputs,
       },
-      outputs: createOutputs(),
+      outputs: createOutputs(selectedOutputs),
     } as unknown as FormData;
   }
 
@@ -40,16 +55,22 @@ export const transformOnInit = (value: NodeDataDTO, context): FormData => {
     );
   });
 
+  const selectedOutputs = resolveSelectedOutputs(
+    (value.inputs as Record<string, unknown> | undefined)?.selectedOutputs,
+  );
+
   return {
     ...(value ?? {}),
-    // the output contract is fixed: always the single `ships` Array<Object>
-    outputs: createOutputs(),
+    // the output contract is fixed: the single `ships` Array<Object>, limited
+    // to the selected element fields.
+    outputs: createOutputs(selectedOutputs),
     inputs: {
       ...omit(value.inputs ?? {}, ['inputParameters', 'selectedOutputs']),
       inputParameters: {
         ...DEFAULT_INPUT_PARAMETERS,
         ...inputParameters,
       },
+      selectedOutputs,
     },
   } as unknown as FormData;
 };
@@ -65,12 +86,16 @@ export const transformOnSubmit = (value: FormData, context): NodeDataDTO => {
       )?.input,
     }));
 
+  const selectedOutputs = resolveSelectedOutputs(value.inputs?.selectedOutputs);
+
   return {
     ...omit(value, ['inputs']),
-    outputs: createOutputs(),
+    outputs: createOutputs(selectedOutputs),
     inputs: {
       ...omit(value.inputs ?? {}, ['inputParameters', 'selectedOutputs']),
       inputParameters,
+      // persisted so the backend can filter the emitted ship objects.
+      selectedOutputs,
     },
   } as unknown as NodeDataDTO;
 };

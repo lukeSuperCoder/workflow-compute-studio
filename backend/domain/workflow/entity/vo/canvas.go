@@ -385,9 +385,12 @@ type HttpRequestSetting struct {
 }
 
 // MirapAreaShip holds exclusive configurations for NodeTypeMirapAreaShipExtractor.
-// The node currently has a fixed output contract, so there is nothing to
-// configure here yet; reserved for future exclusive fields.
-type MirapAreaShip struct{}
+type MirapAreaShip struct {
+	// SelectedOutputs is the subset of the `ships` element fields the user
+	// chose to emit. Its fields are promoted to the canvas node's `inputs`
+	// level. Empty/absent means all known element fields are emitted.
+	SelectedOutputs []string `json:"selectedOutputs,omitempty"`
+}
 
 type DatabaseNode struct {
 	DatabaseInfoList []*DatabaseInfo `json:"databaseInfoList,omitempty"`

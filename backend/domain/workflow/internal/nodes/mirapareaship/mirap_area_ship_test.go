@@ -45,6 +45,7 @@ func TestExtractorInvokeSuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
+	// no selection -> all known element fields are emitted
 	extractor := &Extractor{
 		client:      server.Client(),
 		endpointURL: server.URL,
@@ -71,8 +72,65 @@ func TestExtractorInvokeSuccess(t *testing.T) {
 	assert.Equal(t, 32.2, first["width"])
 	assert.Equal(t, int64(62949), first["dwt"])
 	assert.Equal(t, "foreign", first["tradetype"])
+	// all known element fields are emitted when nothing is selected
+	assert.Len(t, first, len(allShipFields))
 	// the fixed single-output contract must not leak other fields
 	assert.Len(t, output, 1)
+}
+
+func TestExtractorInvokeSelectedOutputsSubset(t *testing.T) {
+	t.Setenv(authorizationEnv, "elane_token_test")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"code":"200","message":"success","datas":[{"mmsi":371836000,"enName":"MOL ENDOWMENT","age":20.0,"countrycode":"PA","shipType":"集装箱船","length":294.12,"width":32.2,"dwt":62949,"tradetype":"foreign"}],"count":0}`))
+	}))
+	defer server.Close()
+
+	// only mmsi and tradetype are selected; every other API field must be
+	// dropped from the emitted objects even though the API returned them.
+	extractor := &Extractor{
+		client:          server.Client(),
+		endpointURL:     server.URL,
+		selectedOutputs: []string{"tradetype", "mmsi"},
+	}
+
+	output, err := extractor.Invoke(context.Background(), map[string]any{
+		inputPoints:    "124 30.4",
+		inputStartDate: "2026-07-04",
+		inputEndDate:   "2026-07-06",
+	})
+
+	require.NoError(t, err)
+	ships := output[outputShips].([]any)
+	require.Len(t, ships, 1)
+	first := ships[0].(map[string]any)
+	require.Len(t, first, 2)
+	assert.Equal(t, int64(371836000), first["mmsi"])
+	assert.Equal(t, "foreign", first["tradetype"])
+	// unselected fields are absent even though the API returned them
+	_, hasEnName := first["enName"]
+	assert.False(t, hasEnName)
+	_, hasLength := first["length"]
+	assert.False(t, hasLength)
+}
+
+func TestShipsOutputTypeReflectsSelection(t *testing.T) {
+	// no selection -> all known element fields are declared
+	all := shipsOutputType(nil).ElemTypeInfo.Properties
+	assert.Len(t, all, len(allShipFields))
+	for _, name := range allShipFields {
+		assert.Contains(t, all, name)
+	}
+
+	// subset selection -> only the selected fields are declared
+	subset := shipsOutputType([]string{"mmsi", "dwt"}).ElemTypeInfo.Properties
+	assert.Len(t, subset, 2)
+	assert.Contains(t, subset, "mmsi")
+	assert.Contains(t, subset, "dwt")
+
+	// unknown names are ignored, unknown-only selection falls back to all
+	unknownOnly := shipsOutputType([]string{"notAField"}).ElemTypeInfo.Properties
+	assert.Len(t, unknownOnly, len(allShipFields))
 }
 
 func TestExtractorInvokeRequiresAuthorization(t *testing.T) {

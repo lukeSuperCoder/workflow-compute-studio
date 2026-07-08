@@ -189,6 +189,7 @@ const (
 	NodeTypeClearConversationHistory   NodeType = "ClearConversationHistory"
 	NodeTypeConversationHistory        NodeType = "ConversationHistory"
 	NodeTypeComment                    NodeType = "Comment"
+	NodeTypeMirapAreaShipExtractor     NodeType = "MirapAreaShipExtractor"
 )
 
 const (
@@ -251,6 +252,11 @@ var Categories = []Category{
 		Key:      "message",
 		Name:     "消息",
 		EnUSName: "Message",
+	},
+	{
+		Key:      "operator",
+		Name:     "算子",
+		EnUSName: "Operator",
 	},
 }
 
@@ -969,6 +975,23 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		},
 		EnUSName:        "Knowledge delete",
 		EnUSDescription: "The delete node can delete a document in knowledge base.",
+	},
+	NodeTypeMirapAreaShipExtractor: {
+		ID:           1001,
+		Key:          NodeTypeMirapAreaShipExtractor,
+		DisplayKey:   "MirapAreaShipExtractor",
+		Name:         "网格提取区域船",
+		Category:     "operator",
+		Desc:         "按固定区域网格和日期范围提取区域船舶",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-http.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "Area ship extractor",
+		EnUSDescription: "Extract ships in a fixed area grid and date range.",
 	},
 	NodeTypeLambda: {
 		ID:       1000,

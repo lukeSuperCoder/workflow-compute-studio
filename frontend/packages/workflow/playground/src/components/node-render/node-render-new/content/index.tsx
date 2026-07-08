@@ -25,6 +25,7 @@ import { StartContent } from '@/node-registries/start';
 import { SetVariableContent } from '@/node-registries/set-variable';
 import { PluginContent } from '@/node-registries/plugin';
 import { OutputContent } from '@/node-registries/output';
+import { MirapAreaShipContent } from '@/node-registries/mirap-area-ship';
 import { LtmContent } from '@/node-registries/ltm';
 import { LoopContent } from '@/node-registries/loop';
 import { JsonStringifyContent } from '@/node-registries/json-stringify';
@@ -90,6 +91,7 @@ const ContentMap = {
   [StandardNodeType.Api]: PluginContent,
   [StandardNodeType.Variable]: VariableContent,
   [StandardNodeType.JsonStringify]: JsonStringifyContent,
+  [StandardNodeType.MirapAreaShipExtractor]: MirapAreaShipContent,
 };
 
 /**

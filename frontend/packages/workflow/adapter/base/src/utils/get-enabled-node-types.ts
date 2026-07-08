@@ -51,6 +51,7 @@ export const getEnabledNodeTypes = (_params: {
     [StandardNodeType.CreateConversation]: true,
     [StandardNodeType.VariableAssign]: true,
     [StandardNodeType.Http]: true,
+    [StandardNodeType.MirapAreaShipExtractor]: true,
     [StandardNodeType.DatabaseUpdate]: true,
     [StandardNodeType.DatabaseQuery]: true,
     [StandardNodeType.DatabaseDelete]: true,

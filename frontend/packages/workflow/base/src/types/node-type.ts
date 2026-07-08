@@ -104,6 +104,7 @@ export enum StandardNodeType {
 
   JsonStringify = '58',
   JsonParser = '59',
+  MirapAreaShipExtractor = '1001',
 }
 
 /**
@@ -146,6 +147,7 @@ export const NODE_ORDER = {
   [StandardNodeType.TriggerUpsert]: 26,
   [StandardNodeType.TriggerRead]: 27,
   [StandardNodeType.TriggerDelete]: 28,
+  [StandardNodeType.MirapAreaShipExtractor]: 29,
 };
 
 /** session class node */

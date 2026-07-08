@@ -30,6 +30,7 @@ export { IMAGE_REFERENCE_NODE_REGISTRY } from './image-reference';
 export { INPUT_NODE_REGISTRY } from './input';
 export { LOOP_NODE_REGISTRY } from './loop';
 export { LTM_NODE_REGISTRY } from './ltm';
+export { MIRAP_AREA_SHIP_NODE_REGISTRY } from './mirap-area-ship';
 export { OUTPUT_NODE_REGISTRY } from './output';
 export { QUESTION_NODE_REGISTRY } from './question';
 export { START_NODE_REGISTRY } from './start';

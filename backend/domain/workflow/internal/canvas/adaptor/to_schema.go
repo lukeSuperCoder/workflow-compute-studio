@@ -47,6 +47,7 @@ import (
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop"
 	_break "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/break"
 	_continue "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/continue"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapareaship"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/plugin"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/qa"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/receiver"
@@ -650,6 +651,9 @@ func RegisterAllNodeAdaptors() {
 	})
 	nodes.RegisterNodeAdaptor(entity.NodeTypeHTTPRequester, func() nodes.NodeAdaptor {
 		return &httprequester.Config{}
+	})
+	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapAreaShipExtractor, func() nodes.NodeAdaptor {
+		return &mirapareaship.Config{}
 	})
 	nodes.RegisterNodeAdaptor(entity.NodeTypeLoop, func() nodes.NodeAdaptor {
 		return &loop.Config{}

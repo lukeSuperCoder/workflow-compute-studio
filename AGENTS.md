@@ -2,6 +2,21 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+## Local Development References
+
+Before making non-trivial code changes, read the local guideline that matches the task:
+
+- General frontend/backend development, API work, local debugging, tests, and troubleshooting: `docs/coze-studio-development-guidelines.md`.
+- Custom workflow node design and feasibility tradeoffs: `docs/custom-workflow-nodes-feasibility.md`.
+
+For workflow node work, treat the following as hard requirements:
+
+- Keep frontend `StandardNodeType` and backend `NodeTypeMetas.ID` aligned for real new node types.
+- Understand `WorkflowNodeRegistry.type` versus `meta.nodeDTOType`; `nodeDTOType` is what gets persisted to the backend schema.
+- Register frontend nodes in both `NODES_V2` and the enabled-node-types map.
+- Implement `node-test.ts` so single-node test inputs are generated correctly.
+- Verify save and reopen behavior, not only drag-to-canvas and test-run behavior.
+
 ## Project Overview
 
 Coze Studio is an all-in-one AI agent development platform with both frontend (React + TypeScript) and backend (Go) components. The project uses a sophisticated monorepo architecture managed by Rush.js with 135+ frontend packages organized in a hierarchical dependency system.

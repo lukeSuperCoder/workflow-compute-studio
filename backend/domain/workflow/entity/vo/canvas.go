@@ -139,6 +139,7 @@ type Inputs struct {
 	*PluginAPIParam     // exclusive configurations for NodeTypePlugin
 	*VariableAggregator // exclusive configurations for NodeTypeVariableAggregator
 	*VariableAssigner   // exclusive configurations for NodeTypeVariableAssigner
+	*MirapAreaShip      // exclusive configurations for NodeTypeMirapAreaShipExtractor
 	*QA                 // exclusive configurations for NodeTypeQuestionAnswer
 	*Batch              // exclusive configurations for NodeTypeBatch
 	*Comment            // exclusive configurations for NodeTypeComment
@@ -382,6 +383,11 @@ type HttpRequestSetting struct {
 	Timeout    int64 `json:"timeout"`
 	RetryTimes int64 `json:"retryTimes"`
 }
+
+// MirapAreaShip holds exclusive configurations for NodeTypeMirapAreaShipExtractor.
+// The node currently has a fixed output contract, so there is nothing to
+// configure here yet; reserved for future exclusive fields.
+type MirapAreaShip struct{}
 
 type DatabaseNode struct {
 	DatabaseInfoList []*DatabaseInfo `json:"databaseInfoList,omitempty"`

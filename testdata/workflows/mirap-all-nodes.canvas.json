@@ -1,0 +1,451 @@
+{
+  "versions": {
+    "loop": "v2"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "1",
+      "meta": { "position": { "x": 0, "y": 0 } },
+      "data": {
+        "nodeMeta": {
+          "title": "Start",
+          "subTitle": "",
+          "description": "Workflow entry.",
+          "icon": "default_icon/workflow_icon/icon-start.jpg"
+        },
+        "outputs": [],
+        "trigger_parameters": []
+      }
+    },
+    {
+      "id": "area_ship",
+      "type": "1001",
+      "meta": { "position": { "x": 320, "y": -220 } },
+      "data": {
+        "nodeMeta": {
+          "title": "Area ship extractor",
+          "subTitle": "",
+          "description": "Extract ships by area grid and date range.",
+          "icon": "default_icon/workflow_icon/icon-http.jpg"
+        },
+        "inputs": {
+          "inputParameters": [
+            {
+              "name": "points",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "124 30.4,124.1 30.4,124.2 30.4,124.3 30.4",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            },
+            {
+              "name": "startdate",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "2026-07-04",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            },
+            {
+              "name": "enddate",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "2026-07-06",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            }
+          ],
+          "selectedOutputs": [
+            "mmsi",
+            "enName",
+            "age",
+            "countrycode",
+            "shipType",
+            "length"
+          ]
+        },
+        "outputs": [
+          {
+            "name": "ships",
+            "type": "list",
+            "schema": {
+              "type": "object",
+              "schema": [
+                { "name": "mmsi", "type": "integer" },
+                { "name": "enName", "type": "string" },
+                { "name": "age", "type": "float" },
+                { "name": "countrycode", "type": "string" },
+                { "name": "shipType", "type": "string" },
+                { "name": "length", "type": "float" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "stay_calc",
+      "type": "1005",
+      "meta": { "position": { "x": 320, "y": 20 } },
+      "data": {
+        "nodeMeta": {
+          "title": "Stay calculation",
+          "subTitle": "",
+          "description": "Filter low-speed events by area grid and date range.",
+          "icon": "default_icon/workflow_icon/icon-http.jpg"
+        },
+        "inputs": {
+          "inputParameters": [
+            {
+              "name": "area_points",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "123.6 30.8,123.7 30.8,123.8 30.8,123.9 30.8",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            },
+            {
+              "name": "start_date",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "2026-07-06",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            },
+            {
+              "name": "end_date",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "2026-07-09",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            }
+          ]
+        },
+        "outputs": [
+          {
+            "name": "low_speed_events",
+            "type": "list",
+            "schema": {
+              "type": "object",
+              "schema": [{ "name": "mmsi", "type": "integer" }]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hover_detail",
+      "type": "1006",
+      "meta": { "position": { "x": 320, "y": 260 } },
+      "data": {
+        "nodeMeta": {
+          "title": "Hover detail",
+          "subTitle": "",
+          "description": "Query turnback event details by area grid and date range.",
+          "icon": "default_icon/workflow_icon/icon-http.jpg"
+        },
+        "inputs": {
+          "inputParameters": [
+            {
+              "name": "area_points",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "123.6 30.8,123.7 30.8,123.8 30.8,123.9 30.8",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            },
+            {
+              "name": "start_date",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "2026-07-06",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            },
+            {
+              "name": "end_date",
+              "input": {
+                "type": "string",
+                "value": {
+                  "type": "literal",
+                  "content": "2026-07-09",
+                  "rawMeta": { "type": 1 }
+                }
+              }
+            }
+          ]
+        },
+        "outputs": [
+          {
+            "name": "turnback_event_details",
+            "type": "list",
+            "schema": {
+              "type": "object",
+              "schema": [
+                { "name": "mmsi", "type": "integer" },
+                { "name": "beginTime", "type": "integer" },
+                { "name": "endTime", "type": "integer" },
+                { "name": "beginLon", "type": "float" },
+                { "name": "beginLat", "type": "float" },
+                { "name": "endLon", "type": "float" },
+                { "name": "endLat", "type": "float" },
+                { "name": "duration", "type": "float" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mirap_intersection",
+      "type": "1002",
+      "meta": { "position": { "x": 760, "y": -220 } },
+      "data": {
+        "nodeMeta": {
+          "title": "MMSI intersection",
+          "subTitle": "",
+          "description": "Intersect ship result sets by MMSI.",
+          "icon": "default_icon/workflow_icon/icon-code.jpg"
+        },
+        "inputs": {
+          "inputParameters": [],
+          "selectedOutputGroups": [
+            {
+              "inputName": "dataset_1",
+              "fields": [
+                "mmsi",
+                "enName",
+                "age",
+                "countrycode",
+                "shipType",
+                "length"
+              ]
+            },
+            { "inputName": "dataset_2", "fields": ["mmsi"] },
+            {
+              "inputName": "dataset_3",
+              "fields": ["mmsi", "beginTime", "endTime", "beginLon", "beginLat"]
+            }
+          ]
+        },
+        "outputs": [
+          {
+            "name": "result",
+            "type": "list",
+            "schema": {
+              "type": "object",
+              "schema": [
+                { "name": "mmsi", "type": "integer" },
+                { "name": "enName", "type": "string" },
+                { "name": "age", "type": "float" },
+                { "name": "countrycode", "type": "string" },
+                { "name": "shipType", "type": "string" },
+                { "name": "length", "type": "float" },
+                { "name": "beginTime", "type": "integer" },
+                { "name": "endTime", "type": "integer" },
+                { "name": "beginLon", "type": "float" },
+                { "name": "beginLat", "type": "float" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mirap_union",
+      "type": "1003",
+      "meta": { "position": { "x": 760, "y": 20 } },
+      "data": {
+        "nodeMeta": {
+          "title": "MMSI union",
+          "subTitle": "",
+          "description": "Union ship result sets by MMSI.",
+          "icon": "default_icon/workflow_icon/icon-code.jpg"
+        },
+        "inputs": {
+          "inputParameters": [],
+          "selectedOutputGroups": [
+            {
+              "inputName": "dataset_1",
+              "fields": [
+                "mmsi",
+                "enName",
+                "age",
+                "countrycode",
+                "shipType",
+                "length"
+              ]
+            },
+            { "inputName": "dataset_2", "fields": ["mmsi"] },
+            {
+              "inputName": "dataset_3",
+              "fields": ["mmsi", "beginTime", "endTime", "beginLon", "beginLat"]
+            }
+          ]
+        },
+        "outputs": [
+          {
+            "name": "result",
+            "type": "list",
+            "schema": {
+              "type": "object",
+              "schema": [
+                { "name": "mmsi", "type": "integer" },
+                { "name": "enName", "type": "string" },
+                { "name": "age", "type": "float" },
+                { "name": "countrycode", "type": "string" },
+                { "name": "shipType", "type": "string" },
+                { "name": "length", "type": "float" },
+                { "name": "beginTime", "type": "integer" },
+                { "name": "endTime", "type": "integer" },
+                { "name": "beginLon", "type": "float" },
+                { "name": "beginLat", "type": "float" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "mirap_difference",
+      "type": "1004",
+      "meta": { "position": { "x": 760, "y": 260 } },
+      "data": {
+        "nodeMeta": {
+          "title": "MMSI difference",
+          "subTitle": "",
+          "description": "Subtract ship result sets from a main result set by MMSI.",
+          "icon": "default_icon/workflow_icon/icon-code.jpg"
+        },
+        "inputs": {
+          "inputParameters": [],
+          "mainInputName": "dataset_1",
+          "selectedOutputGroups": [
+            {
+              "inputName": "dataset_1",
+              "fields": [
+                "mmsi",
+                "enName",
+                "age",
+                "countrycode",
+                "shipType",
+                "length"
+              ]
+            },
+            { "inputName": "dataset_2", "fields": ["mmsi"] },
+            {
+              "inputName": "dataset_3",
+              "fields": ["mmsi", "beginTime", "endTime", "beginLon", "beginLat"]
+            }
+          ]
+        },
+        "outputs": [
+          {
+            "name": "result",
+            "type": "list",
+            "schema": {
+              "type": "object",
+              "schema": [
+                { "name": "mmsi", "type": "integer" },
+                { "name": "enName", "type": "string" },
+                { "name": "age", "type": "float" },
+                { "name": "countrycode", "type": "string" },
+                { "name": "shipType", "type": "string" },
+                { "name": "length", "type": "float" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "end",
+      "type": "2",
+      "meta": { "position": { "x": 1180, "y": 20 } },
+      "data": {
+        "nodeMeta": {
+          "title": "End",
+          "subTitle": "",
+          "description": "Return union result.",
+          "icon": "default_icon/workflow_icon/icon-end.jpg"
+        },
+        "inputs": {
+          "terminatePlan": "returnVariables",
+          "inputParameters": [
+            {
+              "name": "output",
+              "input": {
+                "type": "list",
+                "schema": {
+                  "type": "object",
+                  "schema": [
+                    { "name": "mmsi", "type": "integer" },
+                    { "name": "enName", "type": "string" },
+                    { "name": "age", "type": "float" },
+                    { "name": "countrycode", "type": "string" },
+                    { "name": "shipType", "type": "string" },
+                    { "name": "length", "type": "float" },
+                    { "name": "beginTime", "type": "integer" },
+                    { "name": "endTime", "type": "integer" },
+                    { "name": "beginLon", "type": "float" },
+                    { "name": "beginLat", "type": "float" }
+                  ]
+                },
+                "value": {
+                  "type": "ref",
+                  "content": {
+                    "source": "block-output",
+                    "blockID": "mirap_union",
+                    "name": "result"
+                  },
+                  "rawMeta": { "type": 103 }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "edges": [
+    { "sourceNodeID": "start", "targetNodeID": "area_ship" },
+    { "sourceNodeID": "start", "targetNodeID": "stay_calc" },
+    { "sourceNodeID": "start", "targetNodeID": "hover_detail" },
+    { "sourceNodeID": "area_ship", "targetNodeID": "mirap_intersection" },
+    { "sourceNodeID": "stay_calc", "targetNodeID": "mirap_intersection" },
+    { "sourceNodeID": "hover_detail", "targetNodeID": "mirap_intersection" },
+    { "sourceNodeID": "area_ship", "targetNodeID": "mirap_union" },
+    { "sourceNodeID": "stay_calc", "targetNodeID": "mirap_union" },
+    { "sourceNodeID": "hover_detail", "targetNodeID": "mirap_union" },
+    { "sourceNodeID": "area_ship", "targetNodeID": "mirap_difference" },
+    { "sourceNodeID": "stay_calc", "targetNodeID": "mirap_difference" },
+    { "sourceNodeID": "hover_detail", "targetNodeID": "mirap_difference" },
+    { "sourceNodeID": "mirap_union", "targetNodeID": "end" }
+  ]
+}

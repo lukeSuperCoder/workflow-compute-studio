@@ -1,0 +1,80 @@
+{
+  "captured_at": "2026-07-10",
+  "source_commit": "370eb2802966d331618dba3a7905b811c43ef3ac",
+  "status": "candidate",
+  "included": [
+    { "id": "1", "name": "Start", "reason": "workflow entry" },
+    {
+      "id": "2",
+      "name": "End",
+      "reason": "workflow termination and return values"
+    },
+    { "id": "30", "name": "Input", "reason": "external workflow inputs" },
+    { "id": "13", "name": "Output", "reason": "intermediate/explicit outputs" },
+    { "id": "8", "name": "If", "reason": "branch control" },
+    { "id": "21", "name": "Loop", "reason": "iteration control" },
+    { "id": "28", "name": "Batch", "reason": "batch execution control" },
+    { "id": "19", "name": "Break", "reason": "loop control" },
+    { "id": "29", "name": "Continue", "reason": "loop control" },
+    { "id": "40", "name": "VariableAssign", "reason": "variable mutation" },
+    { "id": "32", "name": "VariableMerge", "reason": "variable aggregation" },
+    { "id": "58", "name": "JsonStringify", "reason": "data shaping" },
+    { "id": "59", "name": "JsonParser", "reason": "data shaping" },
+    { "id": "15", "name": "Text", "reason": "text processor" },
+    { "id": "45", "name": "Http", "reason": "generic HTTP integration" },
+    { "id": "9", "name": "SubWorkflow", "reason": "workflow composition" },
+    { "id": "31", "name": "Comment", "reason": "canvas documentation" },
+    {
+      "id": "1001",
+      "name": "MirapAreaShipExtractor",
+      "reason": "Mirap domain node"
+    },
+    {
+      "id": "1002",
+      "name": "MirapMMSIIntersection",
+      "reason": "Mirap domain node"
+    },
+    { "id": "1003", "name": "MirapMMSIUnion", "reason": "Mirap domain node" },
+    {
+      "id": "1004",
+      "name": "MirapMMSIDifference",
+      "reason": "Mirap domain node"
+    },
+    {
+      "id": "1005",
+      "name": "MirapStayCalculation",
+      "reason": "Mirap domain node"
+    },
+    { "id": "1006", "name": "MirapHoverDetail", "reason": "Mirap domain node" }
+  ],
+  "excluded_by_default": [
+    "LLM",
+    "Api",
+    "Code",
+    "Dataset",
+    "Database",
+    "Imageflow",
+    "ImageGenerate",
+    "ImageReference",
+    "Question",
+    "Intent",
+    "LTM",
+    "DatasetWrite",
+    "SceneChat",
+    "SceneVariable",
+    "TriggerUpsert",
+    "TriggerDelete",
+    "TriggerRead",
+    "DatabaseCreate",
+    "DatabaseUpdate",
+    "DatabaseQuery",
+    "DatabaseDelete",
+    "Conversation and message nodes",
+    "Knowledge nodes"
+  ],
+  "open_decisions": [
+    "Whether free Code Runner should remain excluded.",
+    "Whether generic plugin/API nodes are permanently excluded or replaced by HTTP only.",
+    "Whether database CRUD nodes are needed for Mirap business workflows."
+  ]
+}

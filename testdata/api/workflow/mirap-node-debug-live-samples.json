@@ -1,0 +1,126 @@
+{
+  "captured_at": "2026-07-11",
+  "source": "old repository live API",
+  "workflow_id": "7660929648309567488",
+  "space_id": "7660920851843252224",
+  "endpoint": "POST /api/workflow_api/nodeDebug",
+  "result_endpoint": "GET /api/workflow_api/get_process",
+  "normalization": [
+    "Session cookies and credentials are omitted.",
+    "External service credentials and tokens are omitted.",
+    "Inputs use synthetic MMSI values or the sanitized all-node canvas parameters."
+  ],
+  "summary": {
+    "node_debug_responses_captured": 6,
+    "successful_executions": 3,
+    "failed_executions": 3,
+    "external_failure_reason": "lookup mirap-test.elane.com: no such host"
+  },
+  "samples": [
+    {
+      "node_id": "mirap_intersection",
+      "node_type": "MirapMMSIIntersection",
+      "request_input": {
+        "dataset_1": [
+          { "mmsi": 100000001, "enName": "VESSEL_A" },
+          { "mmsi": 100000002, "enName": "VESSEL_B" }
+        ],
+        "dataset_2": [{ "mmsi": 100000001 }],
+        "dataset_3": [{ "mmsi": 100000001, "beginTime": 1 }]
+      },
+      "node_debug_response": { "code": 0, "execute_id": "7660950310688391168" },
+      "process_response": {
+        "execute_status": 2,
+        "node_status": 3,
+        "output": {
+          "result": [
+            { "mmsi": "100000001", "enName": "VESSEL_A", "beginTime": 1 }
+          ]
+        }
+      }
+    },
+    {
+      "node_id": "mirap_union",
+      "node_type": "MirapMMSIUnion",
+      "request_input": {
+        "dataset_1": [{ "mmsi": 100000001, "enName": "VESSEL_A" }],
+        "dataset_2": [{ "mmsi": 100000001 }],
+        "dataset_3": [{ "mmsi": 100000002 }]
+      },
+      "node_debug_response": { "code": 0, "execute_id": "7660949817622790144" },
+      "process_response": {
+        "execute_status": 2,
+        "node_status": 3,
+        "output": {
+          "result": [
+            { "mmsi": "100000001", "enName": "VESSEL_A" },
+            { "mmsi": "100000002", "enName": null }
+          ]
+        }
+      }
+    },
+    {
+      "node_id": "mirap_difference",
+      "node_type": "MirapMMSIDifference",
+      "request_input": {
+        "dataset_1": [
+          { "mmsi": 100000001, "enName": "VESSEL_A" },
+          { "mmsi": 100000002, "enName": "VESSEL_B" }
+        ],
+        "dataset_2": [{ "mmsi": 100000001 }],
+        "dataset_3": []
+      },
+      "node_debug_response": { "code": 0, "execute_id": "7660950105880526848" },
+      "process_response": {
+        "execute_status": 2,
+        "node_status": 3,
+        "output": { "result": [{ "mmsi": "100000002", "enName": "VESSEL_B" }] }
+      }
+    },
+    {
+      "node_id": "area_ship",
+      "node_type": "MirapAreaShipExtractor",
+      "request_input": {
+        "points": "124 30.4,124.1 30.4,124.2 30.4,124.3 30.4",
+        "startdate": "2026-07-04",
+        "enddate": "2026-07-06"
+      },
+      "node_debug_response": { "code": 0, "execute_id": "7660950322130452480" },
+      "process_response": {
+        "execute_status": 3,
+        "node_status": 4,
+        "error": "Workflow execution failure: lookup mirap-test.elane.com: no such host"
+      }
+    },
+    {
+      "node_id": "stay_calc",
+      "node_type": "MirapStayCalculation",
+      "request_input": {
+        "area_points": "123.6 30.8,123.7 30.8,123.8 30.8,123.9 30.8",
+        "start_date": "2026-07-06",
+        "end_date": "2026-07-09"
+      },
+      "node_debug_response": { "code": 0, "execute_id": "7660950325649473536" },
+      "process_response": {
+        "execute_status": 3,
+        "node_status": 4,
+        "error": "Workflow execution failure: lookup mirap-test.elane.com: no such host"
+      }
+    },
+    {
+      "node_id": "hover_detail",
+      "node_type": "MirapHoverDetail",
+      "request_input": {
+        "area_points": "123.6 30.8,123.7 30.8,123.8 30.8,123.9 30.8",
+        "start_date": "2026-07-06",
+        "end_date": "2026-07-09"
+      },
+      "node_debug_response": { "code": 0, "execute_id": "7660950328723898368" },
+      "process_response": {
+        "execute_status": 3,
+        "node_status": 4,
+        "error": "Workflow execution failure: lookup mirap-test.elane.com: no such host"
+      }
+    }
+  ]
+}

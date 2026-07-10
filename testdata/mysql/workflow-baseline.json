@@ -1,0 +1,254 @@
+{
+  "captured_at": "2026-07-10",
+  "source_commit": "370eb2802966d331618dba3a7905b811c43ef3ac",
+  "database": "opencoze",
+  "sanitization": [
+    "No user credentials, session keys, authorization headers, or external API tokens are included.",
+    "Canvas payloads are not embedded in this MySQL summary; use testdata/workflows/*.canvas.json for sanitized schemas.",
+    "IDs are stringified where precision matters for JavaScript consumers."
+  ],
+  "table_counts": {
+    "workflow_meta": 4,
+    "workflow_draft": 4,
+    "workflow_version": 7,
+    "workflow_reference": 0,
+    "workflow_execution": 103,
+    "workflow_snapshot": 94
+  },
+  "table_counts_after_live_phase0_completion": {
+    "workflow_meta": 8,
+    "workflow_draft": 8,
+    "workflow_version": 13,
+    "workflow_reference": 1,
+    "workflow_execution": 105,
+    "workflow_snapshot": 95
+  },
+  "workflow_meta": [
+    {
+      "id": "1",
+      "name": "split_messages",
+      "space_id": "999999",
+      "status": 3,
+      "latest_version": null
+    },
+    {
+      "id": "7659730132235452416",
+      "name": "api_work_flow",
+      "space_id": "7659729846796288000",
+      "status": 1,
+      "latest_version": "v0.0.4"
+    },
+    {
+      "id": "7659757524790280192",
+      "name": "node_calc_01",
+      "space_id": "7659729846796288000",
+      "status": 1,
+      "latest_version": "v0.0.2"
+    },
+    {
+      "id": "7660020546393866240",
+      "name": "node_api_01",
+      "space_id": "7659729846796288000",
+      "status": 1,
+      "latest_version": "v0.0.1"
+    }
+  ],
+  "workflow_draft": [
+    {
+      "id": "1",
+      "canvas_length": 13654,
+      "test_run_success": true,
+      "modified": false,
+      "commit_id": "1",
+      "node_type_counts": { "1": 1, "2": 1, "5": 1, "15": 1, "21": 1, "31": 3 }
+    },
+    {
+      "id": "7659730132235452416",
+      "canvas_length": 18782,
+      "test_run_success": false,
+      "modified": true,
+      "commit_id": "7660073632407748608",
+      "node_type_counts": { "1": 1, "2": 1, "5": 2, "45": 4 }
+    },
+    {
+      "id": "7659757524790280192",
+      "canvas_length": 7951,
+      "test_run_success": true,
+      "modified": false,
+      "commit_id": "7660830229639725056",
+      "node_type_counts": {
+        "1": 1,
+        "2": 1,
+        "1001": 1,
+        "1003": 1,
+        "1005": 1,
+        "1006": 1
+      }
+    },
+    {
+      "id": "7660020546393866240",
+      "canvas_length": 6164,
+      "test_run_success": true,
+      "modified": true,
+      "commit_id": "7660468142308589568",
+      "node_type_counts": { "1": 1, "2": 1, "5": 1, "1001": 1, "1005": 1 }
+    }
+  ],
+  "workflow_version": [
+    {
+      "workflow_id": "7659730132235452416",
+      "version": "v0.0.1",
+      "commit_id": "7659757104156114944",
+      "canvas_length": 12071
+    },
+    {
+      "workflow_id": "7659730132235452416",
+      "version": "v0.0.2",
+      "commit_id": "7659765436287811584",
+      "canvas_length": 13842
+    },
+    {
+      "workflow_id": "7659730132235452416",
+      "version": "v0.0.3",
+      "commit_id": "7659785208962482176",
+      "canvas_length": 18888
+    },
+    {
+      "workflow_id": "7659730132235452416",
+      "version": "v0.0.4",
+      "commit_id": "7659805711710289920",
+      "canvas_length": 18894
+    },
+    {
+      "workflow_id": "7659757524790280192",
+      "version": "v0.0.1",
+      "commit_id": "7660829042722996224",
+      "canvas_length": 7876
+    },
+    {
+      "workflow_id": "7659757524790280192",
+      "version": "v0.0.2",
+      "commit_id": "7660830229639725056",
+      "canvas_length": 7951
+    },
+    {
+      "workflow_id": "7660020546393866240",
+      "version": "v0.0.1",
+      "commit_id": "7660064922323124224",
+      "canvas_length": 4783
+    }
+  ],
+  "execution_summary": [
+    {
+      "workflow_id": "7659730132235452416",
+      "status": 2,
+      "count": 24,
+      "max_created_at": 1783499615631
+    },
+    {
+      "workflow_id": "7659730132235452416",
+      "status": 3,
+      "count": 31,
+      "max_created_at": 1783432459045
+    },
+    {
+      "workflow_id": "7659757524790280192",
+      "status": 2,
+      "count": 10,
+      "max_created_at": 1783676033442
+    },
+    {
+      "workflow_id": "7659757524790280192",
+      "status": 3,
+      "count": 11,
+      "max_created_at": 1783671588157
+    },
+    {
+      "workflow_id": "7660020546393866240",
+      "status": 2,
+      "count": 14,
+      "max_created_at": 1783648410888
+    },
+    {
+      "workflow_id": "7660020546393866240",
+      "status": 3,
+      "count": 13,
+      "max_created_at": 1783591729471
+    }
+  ],
+  "known_gaps": [
+    "Live nodeDebug responses are captured for all six Mirap nodes, but the three HTTP-backed nodes could not complete because mirap-test.elane.com was not resolvable from the local host."
+  ],
+  "live_api_baseline": {
+    "captured_after_initial_sample": true,
+    "workflow_id": "7660929648309567488",
+    "space_id": "7660920851843252224",
+    "name": "mirap_all_nodes_baseline_20260710",
+    "draft": {
+      "submit_commit_id_after_first_save": "7660930593269481472",
+      "submit_commit_id_after_second_save": "7660932792477286400",
+      "schema_length_after_reopen": 11885,
+      "node_type_counts": {
+        "1": 1,
+        "2": 1,
+        "1001": 1,
+        "1002": 1,
+        "1003": 1,
+        "1004": 1,
+        "1005": 1,
+        "1006": 1
+      }
+    },
+    "published_version": {
+      "version": "v0.0.1",
+      "commit_id": "7660932792477286400",
+      "canvas_length": 11885,
+      "version_description": "Phase 0 all-Mirap baseline publish."
+    }
+  },
+  "runtime_notes": [
+    "The live API run used a manually supplied Cookie header because the old server returned a session cookie with domain=localhost:8888, which curl does not store in its cookie jar.",
+    "The old /api/workflow_api/released_workflows handler returns an empty response struct; published-version evidence is therefore captured from workflow_version."
+  ],
+  "subworkflow_live_baseline": {
+    "child_workflow_id": "7660936046263140352",
+    "child_published_version": "v0.0.3",
+    "child_published_commit_id": "7660940929489960960",
+    "parent_workflow_id": "7660938157419921408",
+    "parent_published_version": "v0.0.2",
+    "parent_published_commit_id": "7660941729377288192",
+    "workflow_reference": {
+      "id": "7660940025885884416",
+      "referring_id": "7660938157419921408",
+      "referred_id": "7660936046263140352",
+      "refer_type": 1,
+      "referring_biz_type": 1,
+      "status": 1
+    },
+    "executions": [
+      {
+        "id": "7660942326516154368",
+        "workflow_id": "7660938157419921408",
+        "status": 2,
+        "root_execution_id": "7660942326516154368",
+        "commit_id": "7660941729377288192"
+      },
+      {
+        "id": "7660942326746841088",
+        "workflow_id": "7660936046263140352",
+        "status": 2,
+        "parent_node_id": "200001",
+        "root_execution_id": "7660942326516154368",
+        "commit_id": "7660940929489960960"
+      }
+    ]
+  },
+  "upload_reopen_live_baseline": {
+    "upload_object_key": "tos-cn-i-v4nquku3lp/mirap-phase0-upload-20260711.txt",
+    "upload_response_payload_key": "4b4a5f85-804c-4fd2-ae1a-32811b4b59dd",
+    "workflow_id": "7660943337066594304",
+    "reopened_submit_commit_id": "7660943885761249280",
+    "reopened_schema_length": 2291,
+    "reopened_file_value": "tos-cn-i-v4nquku3lp/mirap-phase0-upload-20260711.txt"
+  }
+}

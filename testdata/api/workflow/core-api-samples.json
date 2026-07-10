@@ -1,0 +1,199 @@
+{
+  "captured_at": "2026-07-10",
+  "source_commit": "370eb2802966d331618dba3a7905b811c43ef3ac",
+  "normalization": [
+    "IDs are placeholders unless marked as observed.",
+    "No cookie, session key, authorization token, or external service credential is included.",
+    "Canvas payload is referenced by file path instead of duplicated."
+  ],
+  "observed_live_run": {
+    "space_id": "7660920851843252224",
+    "workflow_id": "7660929648309567488",
+    "workflow_name": "mirap_all_nodes_baseline_20260710",
+    "initial_submit_commit_id": "7660929649043570688",
+    "submit_commit_id_after_first_save": "7660930593269481472",
+    "submit_commit_id_after_second_save": "7660932792477286400",
+    "published_version": "v0.0.1",
+    "published_commit_id": "7660932792477286400",
+    "verified_api_operations": [
+      "/api/passport/web/email/login/",
+      "/api/passport/account/info/v2/",
+      "/api/workflow_api/create",
+      "/api/workflow_api/canvas",
+      "/api/workflow_api/save",
+      "/api/workflow_api/publish",
+      "/api/workflow_api/test_run",
+      "/api/common/upload/*tos_uri"
+    ],
+    "notes": [
+      "The session cookie value is intentionally omitted.",
+      "/api/workflow_api/released_workflows is an empty handler in this source revision, so published-version verification used workflow_version."
+    ]
+  },
+  "observed_subworkflow_run": {
+    "child_workflow_id": "7660936046263140352",
+    "child_version": "v0.0.3",
+    "child_commit_id": "7660940929489960960",
+    "parent_workflow_id": "7660938157419921408",
+    "parent_version": "v0.0.2",
+    "parent_commit_id": "7660941729377288192",
+    "workflow_reference_id": "7660940025885884416",
+    "parent_execute_id": "7660942326516154368",
+    "child_execute_id": "7660942326746841088",
+    "child_parent_node_id": "200001"
+  },
+  "observed_upload_reopen": {
+    "upload_object_key": "tos-cn-i-v4nquku3lp/mirap-phase0-upload-20260711.txt",
+    "upload_response_payload_key": "4b4a5f85-804c-4fd2-ae1a-32811b4b59dd",
+    "workflow_id": "7660943337066594304",
+    "reopened_submit_commit_id": "7660943885761249280",
+    "reopened_schema_length": 2291,
+    "reopened_file_value": "tos-cn-i-v4nquku3lp/mirap-phase0-upload-20260711.txt"
+  },
+  "samples": [
+    {
+      "name": "create workflow",
+      "method": "POST",
+      "path": "/api/workflow_api/create",
+      "request": {
+        "space_id": "1000000000000000000",
+        "name": "mirap_all_nodes_baseline",
+        "desc": "Phase 0 Mirap workflow baseline.",
+        "icon_uri": "default_icon/workflow_icon/icon-workflow.jpg"
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "workflow_id": "9000000000000000001"
+        },
+        "msg": "success"
+      }
+    },
+    {
+      "name": "get canvas",
+      "method": "POST",
+      "path": "/api/workflow_api/canvas",
+      "request": {
+        "space_id": "1000000000000000000",
+        "workflow_id": "9000000000000000001"
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "workflow_id": "9000000000000000001",
+          "schema_file": "testdata/workflows/mirap-all-nodes.canvas.json",
+          "submit_commit_id": "9000000000000000100"
+        },
+        "msg": "success"
+      }
+    },
+    {
+      "name": "save workflow",
+      "method": "POST",
+      "path": "/api/workflow_api/save",
+      "request": {
+        "space_id": "1000000000000000000",
+        "workflow_id": "9000000000000000001",
+        "submit_commit_id": "9000000000000000100",
+        "schema_file": "testdata/workflows/mirap-all-nodes.canvas.json"
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "workflow_id": "9000000000000000001",
+          "submit_commit_id": "9000000000000000101"
+        },
+        "msg": "success"
+      }
+    },
+    {
+      "name": "force publish",
+      "method": "POST",
+      "path": "/api/workflow_api/publish",
+      "request": {
+        "space_id": "1000000000000000000",
+        "workflow_id": "9000000000000000001",
+        "force": true,
+        "has_collaborator": false,
+        "workflow_version": "v0.0.1",
+        "description": "Phase 0 baseline publish."
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "workflow_id": "9000000000000000001",
+          "version": "v0.0.1"
+        },
+        "msg": "success"
+      }
+    },
+    {
+      "name": "released workflows",
+      "method": "POST",
+      "path": "/api/workflow_api/released_workflows",
+      "request": {
+        "space_id": "1000000000000000000",
+        "workflow_id": "9000000000000000001"
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "workflow_id": "9000000000000000001",
+          "versions": [
+            {
+              "version": "v0.0.1",
+              "commit_id": "9000000000000000101"
+            }
+          ]
+        },
+        "msg": "success"
+      }
+    },
+    {
+      "name": "workflow test run",
+      "method": "POST",
+      "path": "/api/workflow_api/test_run",
+      "request": {
+        "space_id": "1000000000000000000",
+        "workflow_id": "9000000000000000001",
+        "input": {}
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "execute_id": "9000000000000000200",
+          "workflow_id": "9000000000000000001"
+        },
+        "msg": "success"
+      }
+    },
+    {
+      "name": "single node debug",
+      "method": "POST",
+      "path": "/api/workflow_api/nodeDebug",
+      "request": {
+        "space_id": "1000000000000000000",
+        "workflow_id": "9000000000000000001",
+        "node_id": "mirap_union",
+        "input": {
+          "dataset_1": [{ "mmsi": 100000001, "enName": "VESSEL_A" }],
+          "dataset_2": [{ "mmsi": 100000001 }],
+          "dataset_3": [{ "mmsi": 100000002 }]
+        }
+      },
+      "response": {
+        "code": 0,
+        "data": {
+          "node_id": "mirap_union",
+          "output": {
+            "result": [
+              { "mmsi": 100000001, "enName": "VESSEL_A" },
+              { "mmsi": 100000002 }
+            ]
+          }
+        },
+        "msg": "success"
+      }
+    }
+  ]
+}

@@ -190,6 +190,10 @@ const (
 	NodeTypeConversationHistory        NodeType = "ConversationHistory"
 	NodeTypeComment                    NodeType = "Comment"
 	NodeTypeMirapAreaShipExtractor     NodeType = "MirapAreaShipExtractor"
+	NodeTypeMirapStayCalculation       NodeType = "MirapStayCalculation"
+	NodeTypeMirapMMSIIntersection      NodeType = "MirapMMSIIntersection"
+	NodeTypeMirapMMSIUnion             NodeType = "MirapMMSIUnion"
+	NodeTypeMirapMMSIDifference        NodeType = "MirapMMSIDifference"
 )
 
 const (
@@ -992,6 +996,74 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		},
 		EnUSName:        "Area ship extractor",
 		EnUSDescription: "Extract ships in a fixed area grid and date range.",
+	},
+	NodeTypeMirapMMSIIntersection: {
+		ID:           1002,
+		Key:          NodeTypeMirapMMSIIntersection,
+		DisplayKey:   "MirapMMSIIntersection",
+		Name:         "MMSI 交集",
+		Category:     "operator",
+		Desc:         "按 MMSI 对多个船舶结果集做交集运算",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "MMSI intersection",
+		EnUSDescription: "Intersect ship result sets by MMSI.",
+	},
+	NodeTypeMirapMMSIUnion: {
+		ID:           1003,
+		Key:          NodeTypeMirapMMSIUnion,
+		DisplayKey:   "MirapMMSIUnion",
+		Name:         "MMSI 并集",
+		Category:     "operator",
+		Desc:         "按 MMSI 对多个船舶结果集做并集运算",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "MMSI union",
+		EnUSDescription: "Union ship result sets by MMSI.",
+	},
+	NodeTypeMirapMMSIDifference: {
+		ID:           1004,
+		Key:          NodeTypeMirapMMSIDifference,
+		DisplayKey:   "MirapMMSIDifference",
+		Name:         "MMSI 差集",
+		Category:     "operator",
+		Desc:         "按 MMSI 从主船舶结果集中排除其他结果集",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "MMSI difference",
+		EnUSDescription: "Subtract ship result sets from a main result set by MMSI.",
+	},
+	NodeTypeMirapStayCalculation: {
+		ID:           1005,
+		Key:          NodeTypeMirapStayCalculation,
+		DisplayKey:   "MirapStayCalculation",
+		Name:         "停留计算",
+		Category:     "operator",
+		Desc:         "按固定区域网格和日期范围计算低速停留船舶",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-http.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "Stay calculation",
+		EnUSDescription: "Calculate low-velocity stay ships in a fixed area grid and date range.",
 	},
 	NodeTypeLambda: {
 		ID:       1000,

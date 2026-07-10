@@ -139,7 +139,8 @@ type Inputs struct {
 	*PluginAPIParam     // exclusive configurations for NodeTypePlugin
 	*VariableAggregator // exclusive configurations for NodeTypeVariableAggregator
 	*VariableAssigner   // exclusive configurations for NodeTypeVariableAssigner
-	*MirapAreaShip      // exclusive configurations for NodeTypeMirapAreaShipExtractor
+	*MirapAreaShip      // exclusive configurations for Mirap fixed HTTP operator nodes
+	*MirapMMSISet       // exclusive configurations for Mirap MMSI set operation nodes
 	*QA                 // exclusive configurations for NodeTypeQuestionAnswer
 	*Batch              // exclusive configurations for NodeTypeBatch
 	*Comment            // exclusive configurations for NodeTypeComment
@@ -390,6 +391,17 @@ type MirapAreaShip struct {
 	// chose to emit. Its fields are promoted to the canvas node's `inputs`
 	// level. Empty/absent means all known element fields are emitted.
 	SelectedOutputs []string `json:"selectedOutputs,omitempty"`
+}
+
+// MirapMMSISet holds exclusive configurations for MMSI set operation nodes.
+type MirapMMSISet struct {
+	SelectedOutputGroups []MirapMMSISelectedOutputGroup `json:"selectedOutputGroups,omitempty"`
+	MainInputName        string                         `json:"mainInputName,omitempty"`
+}
+
+type MirapMMSISelectedOutputGroup struct {
+	InputName string   `json:"inputName,omitempty"`
+	Fields    []string `json:"fields,omitempty"`
 }
 
 type DatabaseNode struct {

@@ -60,3 +60,5 @@ values-dev.yaml
 
 *.tsbuildinfo
 .trae/*
+# Ignore documentation files
+/docs/

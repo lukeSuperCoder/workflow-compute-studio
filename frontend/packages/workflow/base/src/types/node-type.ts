@@ -105,6 +105,10 @@ export enum StandardNodeType {
   JsonStringify = '58',
   JsonParser = '59',
   MirapAreaShipExtractor = '1001',
+  MirapMMSIIntersection = '1002',
+  MirapMMSIUnion = '1003',
+  MirapMMSIDifference = '1004',
+  MirapStayCalculation = '1005',
 }
 
 /**
@@ -148,6 +152,10 @@ export const NODE_ORDER = {
   [StandardNodeType.TriggerRead]: 27,
   [StandardNodeType.TriggerDelete]: 28,
   [StandardNodeType.MirapAreaShipExtractor]: 29,
+  [StandardNodeType.MirapMMSIIntersection]: 30,
+  [StandardNodeType.MirapMMSIUnion]: 31,
+  [StandardNodeType.MirapMMSIDifference]: 32,
+  [StandardNodeType.MirapStayCalculation]: 33,
 };
 
 /** session class node */

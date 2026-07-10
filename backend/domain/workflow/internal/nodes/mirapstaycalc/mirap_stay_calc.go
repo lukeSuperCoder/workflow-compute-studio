@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package mirapareaship
+package mirapstaycalc
 
 import (
 	"bytes"
@@ -47,26 +47,18 @@ const (
 	outputShips = "ships"
 )
 
-var endpointURL = "https://mirap-test.elane.com/api/bigData/external_unifiedapi/getMmsiByAreawholeWorld"
+var endpointURL = "https://mirap-test.elane.com/api/elaneDataOpenApi/feign/external_unifiedapi/getMmsiByLowVelocity"
 
 // allShipFields is the canonical, ordered list of element fields the API may
 // return. The order is reused for both the declared output type and the
 // emitted map so the two stay in sync.
 var allShipFields = []string{
-	"mmsi", "enName", "age", "countrycode", "shipType", "length", "width", "dwt", "tradetype",
+	"mmsi",
 }
 
 // shipFieldTypes maps each element field to its declared workflow type.
 var shipFieldTypes = map[string]*vo.TypeInfo{
-	"mmsi":        {Type: vo.DataTypeInteger},
-	"enName":      {Type: vo.DataTypeString},
-	"age":         {Type: vo.DataTypeNumber},
-	"countrycode": {Type: vo.DataTypeString},
-	"shipType":    {Type: vo.DataTypeString},
-	"length":      {Type: vo.DataTypeNumber},
-	"width":       {Type: vo.DataTypeNumber},
-	"dwt":         {Type: vo.DataTypeInteger},
-	"tradetype":   {Type: vo.DataTypeString},
+	"mmsi": {Type: vo.DataTypeInteger},
 }
 
 type Config struct {
@@ -81,7 +73,7 @@ type Config struct {
 func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*schema.NodeSchema, error) {
 	ns := &schema.NodeSchema{
 		Key:     vo.NodeKey(n.ID),
-		Type:    entity.NodeTypeMirapAreaShipExtractor,
+		Type:    entity.NodeTypeMirapStayCalculation,
 		Name:    n.Data.Meta.Title,
 		Configs: c,
 	}
@@ -140,15 +132,7 @@ type responseBody struct {
 }
 
 type ship struct {
-	MMSI        int64   `json:"mmsi"`
-	EnName      string  `json:"enName"`
-	Age         float64 `json:"age"`
-	CountryCode string  `json:"countrycode"`
-	ShipType    string  `json:"shipType"`
-	Length      float64 `json:"length"`
-	Width       float64 `json:"width"`
-	DWT         int64   `json:"dwt"`
-	TradeType   string  `json:"tradetype"`
+	MMSI int64 `json:"mmsi"`
 }
 
 func (e *Extractor) Invoke(ctx context.Context, input map[string]any) (map[string]any, error) {
@@ -198,10 +182,10 @@ func (e *Extractor) Invoke(ctx context.Context, input map[string]any) (map[strin
 
 	var parsed responseBody
 	if err := json.Unmarshal(rawBody, &parsed); err != nil {
-		return nil, fmt.Errorf("parse mirap area ship response failed: %w", err)
+		return nil, fmt.Errorf("parse mirap stay calculation response failed: %w", err)
 	}
 	if parsed.Code != "200" {
-		return nil, fmt.Errorf("mirap area ship api failed, code=%s, message=%s", parsed.Code, parsed.Message)
+		return nil, fmt.Errorf("mirap stay calculation api failed, code=%s, message=%s", parsed.Code, parsed.Message)
 	}
 
 	// The workflow engine (compose.FillIfNotRequired) requires an Array output
@@ -232,15 +216,7 @@ func stringInput(input map[string]any, key string) string {
 // selected fields are included; fields the API did not populate are omitted.
 func (s ship) toMap(selected []string) map[string]any {
 	all := map[string]any{
-		"mmsi":        s.MMSI,
-		"enName":      s.EnName,
-		"age":         s.Age,
-		"countrycode": s.CountryCode,
-		"shipType":    s.ShipType,
-		"length":      s.Length,
-		"width":       s.Width,
-		"dwt":         s.DWT,
-		"tradetype":   s.TradeType,
+		"mmsi": s.MMSI,
 	}
 	out := make(map[string]any, len(selected))
 	for _, name := range selected {

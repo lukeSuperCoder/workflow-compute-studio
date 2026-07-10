@@ -48,6 +48,8 @@ import (
 	_break "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/break"
 	_continue "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/continue"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapareaship"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiset"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapstaycalc"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/plugin"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/qa"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/receiver"
@@ -654,6 +656,18 @@ func RegisterAllNodeAdaptors() {
 	})
 	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapAreaShipExtractor, func() nodes.NodeAdaptor {
 		return &mirapareaship.Config{}
+	})
+	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapStayCalculation, func() nodes.NodeAdaptor {
+		return &mirapstaycalc.Config{}
+	})
+	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIIntersection, func() nodes.NodeAdaptor {
+		return mirapmmsiset.NewIntersectionConfig()
+	})
+	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIUnion, func() nodes.NodeAdaptor {
+		return mirapmmsiset.NewUnionConfig()
+	})
+	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIDifference, func() nodes.NodeAdaptor {
+		return mirapmmsiset.NewDifferenceConfig()
 	})
 	nodes.RegisterNodeAdaptor(entity.NodeTypeLoop, func() nodes.NodeAdaptor {
 		return &loop.Config{}

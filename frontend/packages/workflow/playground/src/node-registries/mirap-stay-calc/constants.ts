@@ -23,7 +23,7 @@ export const INPUT_FIELDS = [
   {
     name: 'points',
     label: 'points',
-    description: '网格点字符串，格式如 lng lat,lng lat',
+    description: '低速停留计算区域点字符串，格式如 lng lat,lng lat',
     required: true,
     type: ViewVariableType.String,
   },
@@ -64,14 +64,6 @@ export const OUTPUT_TYPE = ViewVariableType.ArrayObject;
 
 export const SHIP_FIELDS: { name: string; type: ViewVariableType }[] = [
   { name: 'mmsi', type: ViewVariableType.Integer },
-  { name: 'enName', type: ViewVariableType.String },
-  { name: 'age', type: ViewVariableType.Number },
-  { name: 'countrycode', type: ViewVariableType.String },
-  { name: 'shipType', type: ViewVariableType.String },
-  { name: 'length', type: ViewVariableType.Number },
-  { name: 'width', type: ViewVariableType.Number },
-  { name: 'dwt', type: ViewVariableType.Integer },
-  { name: 'tradetype', type: ViewVariableType.String },
 ];
 
 // Path where the selected element field names are persisted in the node data.

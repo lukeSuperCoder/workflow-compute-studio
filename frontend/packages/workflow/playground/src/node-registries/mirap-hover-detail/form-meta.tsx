@@ -50,7 +50,7 @@ const validateDateInput = params => {
   }
 };
 
-export const MIRAP_STAY_CALC_FORM_META: FormMetaV2<FormData> = {
+export const MIRAP_HOVER_DETAIL_FORM_META: FormMetaV2<FormData> = {
   render: () => <FormRender />,
 
   validateTrigger: ValidateTrigger.onChange,

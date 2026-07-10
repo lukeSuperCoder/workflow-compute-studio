@@ -24,6 +24,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
@@ -35,6 +36,7 @@ import (
 
 const (
 	authorizationEnv = "MIRAP_AUTHORIZATION"
+	baseURLEnv       = "MIRAP_BASE_URL"
 
 	inputPoints    = "points"
 	inputStartDate = "startdate"
@@ -44,16 +46,21 @@ const (
 	// whose element carries a subset of the fields under the API response's
 	// `datas`. Which element fields are emitted is controlled by the
 	// user-selected `selectedOutputs` list.
-	outputShips = "ships"
+	outputShips  = "ships"
+	endpointPath = "/api/bigData/external_unifiedapi/getMmsiByAreawholeWorld"
 )
 
-var endpointURL = "https://mirap-test.elane.com/api/bigData/external_unifiedapi/getMmsiByAreawholeWorld"
+const defaultBaseURL = "https://mirap-test.elane.com"
 
 // allShipFields is the canonical, ordered list of element fields the API may
 // return. The order is reused for both the declared output type and the
 // emitted map so the two stay in sync.
 var allShipFields = []string{
 	"mmsi", "enName", "age", "countrycode", "shipType", "length", "width", "dwt", "tradetype",
+}
+
+var requiredShipFields = map[string]struct{}{
+	"mmsi": {},
 }
 
 // shipFieldTypes maps each element field to its declared workflow type.
@@ -90,7 +97,7 @@ func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*
 		return nil, err
 	}
 
-	c.EndpointURL = endpointURL
+	c.EndpointURL = endpointURL()
 	c.SelectedOutputs = readSelectedOutputs(n)
 	ns.SetOutputType(outputShips, shipsOutputType(c.SelectedOutputs))
 
@@ -100,13 +107,21 @@ func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*
 func (c *Config) Build(_ context.Context, _ *schema.NodeSchema, _ ...schema.BuildOption) (any, error) {
 	url := c.EndpointURL
 	if url == "" {
-		url = endpointURL
+		url = endpointURL()
 	}
 	return &Extractor{
 		client:          &http.Client{Timeout: 120 * time.Second},
 		endpointURL:     url,
 		selectedOutputs: c.SelectedOutputs,
 	}, nil
+}
+
+func endpointURL() string {
+	baseURL := strings.TrimRight(os.Getenv(baseURLEnv), "/")
+	if baseURL == "" {
+		baseURL = defaultBaseURL
+	}
+	return baseURL + endpointPath
 }
 
 // readSelectedOutputs returns the user-selected element field names from the
@@ -260,8 +275,11 @@ func effectiveSelected(selected []string) []string {
 		return allShipFields
 	}
 
-	chosen := make(map[string]struct{}, len(selected))
+	chosen := make(map[string]struct{}, len(selected)+len(requiredShipFields))
 	for _, name := range selected {
+		chosen[name] = struct{}{}
+	}
+	for name := range requiredShipFields {
 		chosen[name] = struct{}{}
 	}
 

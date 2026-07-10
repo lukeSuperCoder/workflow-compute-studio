@@ -32,6 +32,7 @@ export { LOOP_NODE_REGISTRY } from './loop';
 export { LTM_NODE_REGISTRY } from './ltm';
 export { MIRAP_AREA_SHIP_NODE_REGISTRY } from './mirap-area-ship';
 export { MIRAP_STAY_CALC_NODE_REGISTRY } from './mirap-stay-calc';
+export { MIRAP_HOVER_DETAIL_NODE_REGISTRY } from './mirap-hover-detail';
 export {
   MIRAP_MMSI_DIFFERENCE_NODE_REGISTRY,
   MIRAP_MMSI_INTERSECTION_NODE_REGISTRY,

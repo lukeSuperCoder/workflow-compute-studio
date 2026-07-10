@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package mirapstaycalc
+package miraphoverdetail
 
 import (
 	"bytes"
@@ -42,8 +42,8 @@ const (
 	inputStartDate  = "start_date"
 	inputEndDate    = "end_date"
 
-	outputLowSpeedEvents = "low_speed_events"
-	endpointPath         = "/api/elaneDataOpenApi/feign/external_unifiedapi/getMmsiByLowVelocity"
+	outputTurnbackEventDetails = "turnback_event_details"
+	endpointPath               = "/api/bigData/external_unifiedapi/getHoverDetailwholeWorld"
 )
 
 const defaultBaseURL = "https://mirap-test.elane.com"
@@ -55,7 +55,7 @@ type Config struct {
 func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*schema.NodeSchema, error) {
 	ns := &schema.NodeSchema{
 		Key:     vo.NodeKey(n.ID),
-		Type:    entity.NodeTypeMirapStayCalculation,
+		Type:    entity.NodeTypeMirapHoverDetail,
 		Name:    n.Data.Meta.Title,
 		Configs: c,
 	}
@@ -65,12 +65,19 @@ func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*
 	}
 
 	c.EndpointURL = endpointURL()
-	ns.SetOutputType(outputLowSpeedEvents, &vo.TypeInfo{
+	ns.SetOutputType(outputTurnbackEventDetails, &vo.TypeInfo{
 		Type: vo.DataTypeArray,
 		ElemTypeInfo: &vo.TypeInfo{
 			Type: vo.DataTypeObject,
 			Properties: map[string]*vo.TypeInfo{
-				"mmsi": {Type: vo.DataTypeInteger},
+				"mmsi":      {Type: vo.DataTypeInteger},
+				"beginTime": {Type: vo.DataTypeInteger},
+				"endTime":   {Type: vo.DataTypeInteger},
+				"beginLon":  {Type: vo.DataTypeNumber},
+				"beginLat":  {Type: vo.DataTypeNumber},
+				"endLon":    {Type: vo.DataTypeNumber},
+				"endLat":    {Type: vo.DataTypeNumber},
+				"duration":  {Type: vo.DataTypeNumber},
 			},
 		},
 	})
@@ -109,14 +116,21 @@ type requestBody struct {
 }
 
 type responseBody struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Datas   []ship `json:"datas"`
-	Count   int64  `json:"count"`
+	Code    string                `json:"code"`
+	Message string                `json:"message"`
+	Datas   []turnbackEventDetail `json:"datas"`
+	Count   int64                 `json:"count"`
 }
 
-type ship struct {
-	MMSI int64 `json:"mmsi"`
+type turnbackEventDetail struct {
+	MMSI      int64   `json:"mmsi"`
+	BeginTime int64   `json:"beginTime"`
+	EndTime   int64   `json:"endTime"`
+	BeginLon  float64 `json:"beginLon"`
+	BeginLat  float64 `json:"beginLat"`
+	EndLon    float64 `json:"endLon"`
+	EndLat    float64 `json:"endLat"`
+	Duration  float64 `json:"duration"`
 }
 
 func (e *Extractor) Invoke(ctx context.Context, input map[string]any) (map[string]any, error) {
@@ -166,19 +180,29 @@ func (e *Extractor) Invoke(ctx context.Context, input map[string]any) (map[strin
 
 	var parsed responseBody
 	if err := json.Unmarshal(rawBody, &parsed); err != nil {
-		return nil, fmt.Errorf("parse mirap stay calculation response failed: %w", err)
+		return nil, fmt.Errorf("parse mirap hover detail response failed: %w", err)
 	}
 	if parsed.Code != "200" {
-		return nil, fmt.Errorf("mirap stay calculation api failed, code=%s, message=%s", parsed.Code, parsed.Message)
+		return nil, fmt.Errorf("mirap hover detail api failed, code=%s, message=%s", parsed.Code, parsed.Message)
 	}
 
-	events := make([]any, 0, len(parsed.Datas))
+	details := make([]any, 0, len(parsed.Datas))
 	for i := range parsed.Datas {
-		events = append(events, map[string]any{"mmsi": parsed.Datas[i].MMSI})
+		detail := parsed.Datas[i]
+		details = append(details, map[string]any{
+			"mmsi":      detail.MMSI,
+			"beginTime": detail.BeginTime,
+			"endTime":   detail.EndTime,
+			"beginLon":  detail.BeginLon,
+			"beginLat":  detail.BeginLat,
+			"endLon":    detail.EndLon,
+			"endLat":    detail.EndLat,
+			"duration":  detail.Duration,
+		})
 	}
 
 	return map[string]any{
-		outputLowSpeedEvents: events,
+		outputTurnbackEventDetails: details,
 	}, nil
 }
 

@@ -28,7 +28,6 @@ import {
   OUTPUT_FIELDS,
   OUTPUT_NAME,
   OUTPUT_TYPE,
-  REQUIRED_OUTPUT_FIELDS,
 } from './constants';
 
 export const FormRender = withNodeConfigForm(() => (
@@ -54,10 +53,7 @@ export const FormRender = withNodeConfigForm(() => (
               key={field.name}
               className="flex min-h-[24px] items-center justify-between gap-[8px]"
             >
-              <Checkbox
-                checked={REQUIRED_OUTPUT_FIELDS.includes(field.name)}
-                disabled={REQUIRED_OUTPUT_FIELDS.includes(field.name)}
-              >
+              <Checkbox checked disabled>
                 <span className="text-[12px] coz-fg-secondary">
                   {field.name}
                 </span>

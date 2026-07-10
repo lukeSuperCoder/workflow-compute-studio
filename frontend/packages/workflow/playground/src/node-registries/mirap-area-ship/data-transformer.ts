@@ -24,13 +24,16 @@ import {
   DEFAULT_INPUT_PARAMETERS,
   DEFAULT_SELECTED_OUTPUTS,
   createOutputs,
+  normalizeSelectedOutputs,
 } from './constants';
 
 // Resolve the persisted selection, falling back to all fields for legacy
 // nodes that predate the selection feature (or have an empty list).
 const resolveSelectedOutputs = (raw: unknown): string[] => {
   if (Array.isArray(raw) && raw.length > 0) {
-    return raw.filter((v): v is string => typeof v === 'string');
+    return normalizeSelectedOutputs(
+      raw.filter((v): v is string => typeof v === 'string'),
+    );
   }
   return DEFAULT_SELECTED_OUTPUTS;
 };

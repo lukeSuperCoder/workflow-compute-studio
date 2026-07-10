@@ -194,6 +194,7 @@ const (
 	NodeTypeMirapMMSIIntersection      NodeType = "MirapMMSIIntersection"
 	NodeTypeMirapMMSIUnion             NodeType = "MirapMMSIUnion"
 	NodeTypeMirapMMSIDifference        NodeType = "MirapMMSIDifference"
+	NodeTypeMirapHoverDetail           NodeType = "MirapHoverDetail"
 )
 
 const (
@@ -1052,9 +1053,9 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		ID:           1005,
 		Key:          NodeTypeMirapStayCalculation,
 		DisplayKey:   "MirapStayCalculation",
-		Name:         "停留计算",
+		Name:         "低速事件筛选",
 		Category:     "operator",
-		Desc:         "按固定区域网格和日期范围计算低速停留船舶",
+		Desc:         "按区域网格和日期范围筛选低速事件船舶",
 		Color:        "#3071F2",
 		IconURI:      "default_icon/workflow_icon/icon-http.jpg",
 		SupportBatch: false,
@@ -1062,8 +1063,25 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 			PreFillZero: true,
 			PostFillNil: true,
 		},
-		EnUSName:        "Stay calculation",
-		EnUSDescription: "Calculate low-velocity stay ships in a fixed area grid and date range.",
+		EnUSName:        "Low-speed event filter",
+		EnUSDescription: "Filter ships with low-speed events by area grid and date range.",
+	},
+	NodeTypeMirapHoverDetail: {
+		ID:           1006,
+		Key:          NodeTypeMirapHoverDetail,
+		DisplayKey:   "MirapHoverDetail",
+		Name:         "折返事件明细",
+		Category:     "operator",
+		Desc:         "按区域网格和日期范围查询折返事件明细",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-http.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "Turnback event detail",
+		EnUSDescription: "Query turnback event details by area grid and date range.",
 	},
 	NodeTypeLambda: {
 		ID:       1000,

@@ -79,9 +79,18 @@ export const SHIP_FIELDS: { name: string; type: ViewVariableType }[] = [
 // emitted ship objects at runtime.
 export const SELECTED_OUTPUTS_PATH = 'inputs.selectedOutputs';
 
+// MMSI is the stable identifier used by downstream operators, so it is always
+// present even when users trim optional ship attributes.
+export const REQUIRED_OUTPUT_FIELDS = ['mmsi'];
+
 // All element fields are selected by default so a freshly created node emits
 // the full ship record, matching the previous fixed-output behavior.
 export const DEFAULT_SELECTED_OUTPUTS = SHIP_FIELDS.map(field => field.name);
+
+export const normalizeSelectedOutputs = (selected: string[]) =>
+  SHIP_FIELDS.map(field => field.name).filter(
+    name => selected.includes(name) || REQUIRED_OUTPUT_FIELDS.includes(name),
+  );
 
 // Build a fresh outputs array with unique keys, limited to the selected
 // element fields. Called on init, submit, and whenever the selection changes
@@ -95,7 +104,7 @@ export const createOutputs = (
     children?: Array<{ key?: string; name?: string }>;
   }> = [],
 ) => {
-  const selectedSet = new Set(selected);
+  const selectedSet = new Set(normalizeSelectedOutputs(selected));
   const existingOutput = existingOutputs.find(
     item => item.name === OUTPUT_NAME,
   );

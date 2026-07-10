@@ -48,6 +48,7 @@ import (
 	_break "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/break"
 	_continue "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/continue"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapareaship"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/miraphoverdetail"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiset"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapstaycalc"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/plugin"
@@ -659,6 +660,9 @@ func RegisterAllNodeAdaptors() {
 	})
 	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapStayCalculation, func() nodes.NodeAdaptor {
 		return &mirapstaycalc.Config{}
+	})
+	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapHoverDetail, func() nodes.NodeAdaptor {
+		return &miraphoverdetail.Config{}
 	})
 	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIIntersection, func() nodes.NodeAdaptor {
 		return mirapmmsiset.NewIntersectionConfig()

@@ -33,8 +33,10 @@ import {
   OUTPUT_TYPE,
   SELECTED_OUTPUTS_PATH,
   SHIP_FIELDS,
+  REQUIRED_OUTPUT_FIELDS,
   DEFAULT_SELECTED_OUTPUTS,
   createOutputs,
+  normalizeSelectedOutputs,
 } from './constants';
 
 export const FormRender = withNodeConfigForm(() => {
@@ -52,8 +54,8 @@ export const FormRender = withNodeConfigForm(() => {
         current.delete(name);
       }
       // preserve canonical field ordering
-      const next = SHIP_FIELDS.map(field => field.name).filter(item =>
-        current.has(item),
+      const next = normalizeSelectedOutputs(
+        SHIP_FIELDS.map(field => field.name).filter(item => current.has(item)),
       );
       form.setValueIn(SELECTED_OUTPUTS_PATH, next);
       // re-derive outputs so only selected fields are emitted and exposed
@@ -83,6 +85,7 @@ export const FormRender = withNodeConfigForm(() => {
           <div className="flex flex-col gap-[4px] pl-[16px]">
             {SHIP_FIELDS.map(field => {
               const checked = selected.includes(field.name);
+              const required = REQUIRED_OUTPUT_FIELDS.includes(field.name);
               return (
                 <div
                   key={field.name}
@@ -90,6 +93,7 @@ export const FormRender = withNodeConfigForm(() => {
                 >
                   <Checkbox
                     checked={checked}
+                    disabled={required}
                     onChange={(e: { target: { checked: boolean } }) =>
                       toggleField(field.name, e.target.checked)
                     }

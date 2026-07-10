@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package mirapstaycalc
+package miraphoverdetail
 
 import (
 	"context"
@@ -41,7 +41,7 @@ func TestExtractorInvokeSuccess(t *testing.T) {
 		assert.Equal(t, "2026-07-04", req.StartDate)
 		assert.Equal(t, "2026-07-06", req.EndDate)
 
-		_, _ = w.Write([]byte(`{"code":"200","message":"success","datas":[{"mmsi":538012836},{"mmsi":636093055}],"count":0}`))
+		_, _ = w.Write([]byte(`{"code":"200","message":"success","datas":[{"mmsi":538012836,"beginTime":1727368251,"endTime":1783267199,"beginLon":124.264933,"beginLat":30.622615,"endLon":0.0,"endLat":0.0,"duration":15527.0},{"mmsi":636093055,"beginTime":1734517223,"endTime":1783267199,"beginLon":124.17968,"beginLat":30.461965,"endLon":0.0,"endLat":0.0,"duration":13542.0}],"count":0}`))
 	}))
 	defer server.Close()
 
@@ -57,11 +57,29 @@ func TestExtractorInvokeSuccess(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	events, ok := output[outputLowSpeedEvents].([]any)
+	events, ok := output[outputTurnbackEventDetails].([]any)
 	require.True(t, ok)
 	assert.Equal(t, []any{
-		map[string]any{"mmsi": int64(538012836)},
-		map[string]any{"mmsi": int64(636093055)},
+		map[string]any{
+			"mmsi":      int64(538012836),
+			"beginTime": int64(1727368251),
+			"endTime":   int64(1783267199),
+			"beginLon":  124.264933,
+			"beginLat":  30.622615,
+			"endLon":    0.0,
+			"endLat":    0.0,
+			"duration":  15527.0,
+		},
+		map[string]any{
+			"mmsi":      int64(636093055),
+			"beginTime": int64(1734517223),
+			"endTime":   int64(1783267199),
+			"beginLon":  124.17968,
+			"beginLat":  30.461965,
+			"endLon":    0.0,
+			"endLat":    0.0,
+			"duration":  13542.0,
+		},
 	}, events)
 	assert.Len(t, output, 1)
 }
@@ -80,7 +98,7 @@ func TestExtractorInvokeSupportsLegacyInputNames(t *testing.T) {
 	t.Setenv(authorizationEnv, "elane_token_test")
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte(`{"code":"200","message":"success","datas":[{"mmsi":371836000}],"count":0}`))
+		_, _ = w.Write([]byte(`{"code":"200","message":"success","datas":[{"mmsi":371836000,"beginTime":1727368251,"endTime":1783267199,"beginLon":124.264933,"beginLat":30.622615,"endLon":0.0,"endLat":0.0,"duration":15527.0}],"count":0}`))
 	}))
 	defer server.Close()
 
@@ -96,7 +114,16 @@ func TestExtractorInvokeSupportsLegacyInputNames(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Equal(t, []any{map[string]any{"mmsi": int64(371836000)}}, output[outputLowSpeedEvents])
+	assert.Equal(t, []any{map[string]any{
+		"mmsi":      int64(371836000),
+		"beginTime": int64(1727368251),
+		"endTime":   int64(1783267199),
+		"beginLon":  124.264933,
+		"beginLat":  30.622615,
+		"endLon":    0.0,
+		"endLat":    0.0,
+		"duration":  15527.0,
+	}}, output[outputTurnbackEventDetails])
 }
 
 func TestExtractorInvokeRequiresAuthorization(t *testing.T) {
@@ -150,5 +177,5 @@ func TestExtractorInvokeEmptyDatas(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Equal(t, []any{}, output[outputLowSpeedEvents])
+	assert.Equal(t, []any{}, output[outputTurnbackEventDetails])
 }

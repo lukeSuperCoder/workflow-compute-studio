@@ -114,6 +114,12 @@ func TestExtractorInvokeSelectedOutputsSubset(t *testing.T) {
 	assert.False(t, hasLength)
 }
 
+func TestShipsOutputTypeAlwaysIncludesMMSI(t *testing.T) {
+	properties := shipsOutputType([]string{"tradetype"}).ElemTypeInfo.Properties
+	assert.Contains(t, properties, "mmsi")
+	assert.Contains(t, properties, "tradetype")
+}
+
 func TestShipsOutputTypeReflectsSelection(t *testing.T) {
 	// no selection -> all known element fields are declared
 	all := shipsOutputType(nil).ElemTypeInfo.Properties
@@ -128,9 +134,22 @@ func TestShipsOutputTypeReflectsSelection(t *testing.T) {
 	assert.Contains(t, subset, "mmsi")
 	assert.Contains(t, subset, "dwt")
 
-	// unknown names are ignored, unknown-only selection falls back to all
+	// unknown names are ignored, but the required MMSI field remains present.
 	unknownOnly := shipsOutputType([]string{"notAField"}).ElemTypeInfo.Properties
-	assert.Len(t, unknownOnly, len(allShipFields))
+	assert.Len(t, unknownOnly, 1)
+	assert.Contains(t, unknownOnly, "mmsi")
+}
+
+func TestEndpointURLUsesConfiguredBaseURL(t *testing.T) {
+	t.Setenv(baseURLEnv, "https://mirap.example.com/")
+
+	assert.Equal(t, "https://mirap.example.com"+endpointPath, endpointURL())
+}
+
+func TestEndpointURLUsesDefaultBaseURL(t *testing.T) {
+	t.Setenv(baseURLEnv, "")
+
+	assert.Equal(t, defaultBaseURL+endpointPath, endpointURL())
 }
 
 func TestExtractorInvokeRequiresAuthorization(t *testing.T) {

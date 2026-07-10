@@ -56,6 +56,7 @@ export const getEnabledNodeTypes = (_params: {
     [StandardNodeType.MirapMMSIIntersection]: true,
     [StandardNodeType.MirapMMSIUnion]: true,
     [StandardNodeType.MirapMMSIDifference]: true,
+    [StandardNodeType.MirapHoverDetail]: true,
     [StandardNodeType.DatabaseUpdate]: true,
     [StandardNodeType.DatabaseQuery]: true,
     [StandardNodeType.DatabaseDelete]: true,

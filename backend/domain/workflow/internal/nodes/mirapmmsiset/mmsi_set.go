@@ -330,16 +330,29 @@ type inputIndex struct {
 	keys    []string
 }
 
+type preparedInput struct {
+	name            string
+	rawFields       []string
+	items           []any
+	availableFields map[string]struct{}
+}
+
 func buildInputIndexes(input map[string]any, groups []SelectedOutputGroup) ([]*inputIndex, []string, error) {
+	prepared, err := prepareInputs(input, groups)
+	if err != nil {
+		return nil, nil, err
+	}
+	groups = alignSelectedFieldsWithInputs(prepared)
+
 	indexes := make([]*inputIndex, 0, len(groups))
 	seenGlobal := make(map[string]struct{})
 	orderedKeys := make([]string, 0)
 
-	for _, group := range groups {
+	for i, group := range groups {
 		if group.InputName == "" {
 			continue
 		}
-		idx, err := indexInput(group.InputName, group.Fields, input[group.InputName])
+		idx, err := indexItems(group.InputName, group.Fields, prepared[i].items)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -356,12 +369,86 @@ func buildInputIndexes(input map[string]any, groups []SelectedOutputGroup) ([]*i
 	return indexes, orderedKeys, nil
 }
 
-func indexInput(name string, fields []string, raw any) (*inputIndex, error) {
-	items, err := normalizeObjectArray(raw)
-	if err != nil {
-		return nil, fmt.Errorf("input %s must be an array of objects: %w", name, err)
+func prepareInputs(input map[string]any, groups []SelectedOutputGroup) ([]preparedInput, error) {
+	prepared := make([]preparedInput, 0, len(groups))
+	for _, group := range groups {
+		if group.InputName == "" {
+			continue
+		}
+		items, err := normalizeObjectArray(input[group.InputName])
+		if err != nil {
+			return nil, fmt.Errorf("input %s must be an array of objects: %w", group.InputName, err)
+		}
+		prepared = append(prepared, preparedInput{
+			name:            group.InputName,
+			rawFields:       group.Fields,
+			items:           items,
+			availableFields: collectAvailableFields(items),
+		})
+	}
+	return prepared, nil
+}
+
+func collectAvailableFields(items []any) map[string]struct{} {
+	fields := make(map[string]struct{})
+	for _, item := range items {
+		record, ok := normalizeRecord(item)
+		if !ok {
+			continue
+		}
+		for field := range record {
+			fields[field] = struct{}{}
+		}
+	}
+	return fields
+}
+
+func alignSelectedFieldsWithInputs(prepared []preparedInput) []SelectedOutputGroup {
+	alignedFields := make(map[string][]string, len(prepared))
+	for _, item := range prepared {
+		alignedFields[item.name] = []string{"mmsi"}
 	}
 
+	for _, item := range prepared {
+		for _, field := range normalizeFields(item.rawFields) {
+			if field == "mmsi" {
+				continue
+			}
+			targetName := item.name
+			if _, ok := item.availableFields[field]; !ok {
+				if ownerName, found := findUniqueFieldOwner(prepared, field); found {
+					targetName = ownerName
+				}
+			}
+			alignedFields[targetName] = append(alignedFields[targetName], field)
+		}
+	}
+
+	groups := make([]SelectedOutputGroup, 0, len(prepared))
+	for _, item := range prepared {
+		groups = append(groups, SelectedOutputGroup{
+			InputName: item.name,
+			Fields:    normalizeFields(alignedFields[item.name]),
+		})
+	}
+	return groups
+}
+
+func findUniqueFieldOwner(prepared []preparedInput, field string) (string, bool) {
+	owner := ""
+	for _, item := range prepared {
+		if _, ok := item.availableFields[field]; !ok {
+			continue
+		}
+		if owner != "" {
+			return "", false
+		}
+		owner = item.name
+	}
+	return owner, owner != ""
+}
+
+func indexItems(name string, fields []string, items []any) (*inputIndex, error) {
 	selected := normalizeFields(fields)
 	idx := &inputIndex{
 		name:    name,

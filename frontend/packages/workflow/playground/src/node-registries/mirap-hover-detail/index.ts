@@ -14,10 +14,5 @@
  * limitations under the License.
  */
 
-import { type NodeDataDTO, type ValueExpression } from '@coze-workflow/base';
-
-export interface FormData extends Omit<NodeDataDTO, 'inputs'> {
-  inputs: {
-    inputParameters: Record<string, ValueExpression>;
-  };
-}
+export { MIRAP_HOVER_DETAIL_NODE_REGISTRY } from './node-registry';
+export { MirapHoverDetailContent } from './node-content';

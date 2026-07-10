@@ -109,6 +109,7 @@ export enum StandardNodeType {
   MirapMMSIUnion = '1003',
   MirapMMSIDifference = '1004',
   MirapStayCalculation = '1005',
+  MirapHoverDetail = '1006',
 }
 
 /**
@@ -156,6 +157,7 @@ export const NODE_ORDER = {
   [StandardNodeType.MirapMMSIUnion]: 31,
   [StandardNodeType.MirapMMSIDifference]: 32,
   [StandardNodeType.MirapStayCalculation]: 33,
+  [StandardNodeType.MirapHoverDetail]: 34,
 };
 
 /** session class node */

@@ -61,4 +61,4 @@ values-dev.yaml
 *.tsbuildinfo
 .trae/*
 # Ignore documentation files
-/docs/
+/docs/mirap-api-guide.md

@@ -55,13 +55,20 @@ export const DEFAULT_INPUT_PARAMETERS = {
   },
 };
 
-// Keep the event result as an object array so downstream nodes can reference
-// the semantic `mmsi` field directly.
-export const OUTPUT_NAME = 'low_speed_events';
+export const OUTPUT_NAME = 'turnback_event_details';
 
 export const OUTPUT_TYPE = ViewVariableType.ArrayObject;
 
-export const OUTPUT_FIELDS = [{ name: 'mmsi', type: ViewVariableType.Integer }];
+export const OUTPUT_FIELDS = [
+  { name: 'mmsi', type: ViewVariableType.Integer },
+  { name: 'beginTime', type: ViewVariableType.Integer },
+  { name: 'endTime', type: ViewVariableType.Integer },
+  { name: 'beginLon', type: ViewVariableType.Number },
+  { name: 'beginLat', type: ViewVariableType.Number },
+  { name: 'endLon', type: ViewVariableType.Number },
+  { name: 'endLat', type: ViewVariableType.Number },
+  { name: 'duration', type: ViewVariableType.Number },
+];
 
 // Keep required output fields declarative so future output fields can be
 // configured without changing the form or transformer contract.

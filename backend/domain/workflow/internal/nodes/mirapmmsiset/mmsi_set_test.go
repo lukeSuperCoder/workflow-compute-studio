@@ -87,6 +87,47 @@ func TestRunnerUnionKeepsAllMMSIAndFillsMissingFields(t *testing.T) {
 	assert.Equal(t, map[string]any{"mmsi": "3", "name": nil, "speed": 15}, result[2])
 }
 
+func TestRunnerUnionRealignsFieldsWhenSelectedGroupsAreMismatched(t *testing.T) {
+	runner := &Runner{
+		operation: OpUnion,
+		selectedOutputGroups: []SelectedOutputGroup{
+			{InputName: "dataset_1", Fields: []string{"mmsi", "beginTime", "beginLon"}},
+			{InputName: "dataset_2", Fields: []string{"mmsi"}},
+			{InputName: "dataset_3", Fields: []string{"mmsi", "enName", "age"}},
+		},
+	}
+
+	output, err := runner.Invoke(context.Background(), map[string]any{
+		"dataset_1": []any{
+			map[string]any{"mmsi": 563265700, "enName": "FALCON KIZUNA", "age": 2},
+		},
+		"dataset_2": []any{
+			map[string]any{"mmsi": 373630000},
+		},
+		"dataset_3": []any{
+			map[string]any{"mmsi": 352153000, "beginTime": 1783321580, "beginLon": 123.8922},
+		},
+	})
+
+	require.NoError(t, err)
+	result := output[outputResult].([]any)
+	require.Len(t, result, 3)
+	assert.Equal(t, map[string]any{
+		"mmsi":      "563265700",
+		"enName":    "FALCON KIZUNA",
+		"age":       2,
+		"beginTime": nil,
+		"beginLon":  nil,
+	}, result[0])
+	assert.Equal(t, map[string]any{
+		"mmsi":      "352153000",
+		"enName":    nil,
+		"age":       nil,
+		"beginTime": 1783321580,
+		"beginLon":  123.8922,
+	}, result[2])
+}
+
 func TestRunnerUnionAcceptsWrappedAndTypedObjectArrays(t *testing.T) {
 	runner := &Runner{
 		operation: OpUnion,

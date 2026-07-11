@@ -477,6 +477,14 @@ WorkflowAPI
 预计：3～4 天。
 
 状态（2026-07-11）：进行中。`STORAGE_TYPE=local`、本地文件系统实现、workflow-only `/assets/*path`、`/api/files/upload`、`/api/files/*path` 已接入；workflow-only 启动会将默认图标资源种到 local storage；workflow 前端上传点已从 `upLoadFile` / `SignImageURL` 切换为 `/api/files/upload` multipart 上传。已通过后端局部测试、脚本语法、旧上传调用扫描和 diff 空白检查；本轮真实 `make workflow-smoke` 受 Codex 审批/额度限制未能复跑，需下次启动服务后补跑。
+状态（2026-07-11 更新）：阶段 3 已完成。本次补跑的全部验证通过：
+- `make workflow-middleware` 启动隔离 MySQL/Redis，均 Healthy。
+- `make workflow-server` 以 `APP_ENV=workflow` 启动 workflow-only 后端，监听 `:8889`，不连接 MinIO。
+- `make workflow-smoke` 全量通过，覆盖 healthz、icon asset 读取、workflow_list、文件上传/读取/越权拒绝、Mirap fixture 保存/重开/发布、最小工作流 test_run + get_process。
+- localfs 单测 4 项全部通过：Put/Get、路径穿越拒绝、父目录符号链接逃逸拒绝、文件符号链接逃逸拒绝。
+- 持久化验证：重启 workflow-server 后，上一轮上传的文件仍可通过 `/api/files/uploads/*` 读取，内容一致。
+- 环境审计：workflow-only env 文件无 `MINIO_*` 变量；workflow-only 代码路径无 MinIO SDK 调用。
+- M2 里程碑达成。
 
 工作内容：
 
@@ -517,6 +525,7 @@ MINIO_DEFAULT_BUCKETS
 - 后端启动不连接 MinIO。
 - 图标显示正常。
 - 上传、读取和删除文件正常。
+- `DELETE /api/files/*path` 已接入，私有文件删除需通过 owner 校验，删除后再读取返回 404；localfs `DeleteObject` 单测覆盖正常删除与二次删除错误。
 - 重启服务后文件仍存在。
 - 路径穿越与越权访问测试通过。
 
@@ -748,6 +757,8 @@ latest_version 能在 workflow_version 中找到
 - LocalFilesystemStorage 完成。
 - 图标、上传和文件访问正常。
 - 环境变量、代码依赖和启动过程不再出现 MinIO。
+
+状态（2026-07-11）：已完成。详见阶段 3 验证记录。
 
 ### M3：工作流前端独立
 

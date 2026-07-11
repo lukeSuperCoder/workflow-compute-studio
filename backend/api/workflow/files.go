@@ -75,6 +75,30 @@ func (h *FileHandler) GetPrivateFile(ctx context.Context, c *app.RequestContext)
 
 	h.writeObject(ctx, c, key)
 }
+func (h *FileHandler) DeletePrivateFile(ctx context.Context, c *app.RequestContext) {
+	uid := ctxutil.GetUIDFromCtx(ctx)
+	if uid == nil {
+		c.JSON(consts.StatusUnauthorized, map[string]string{"error": "session required"})
+		return
+	}
+
+	key := strings.TrimPrefix(c.Param("path"), "/")
+	if !isUserUploadKey(key, *uid) {
+		c.JSON(consts.StatusForbidden, map[string]string{"error": "file access denied"})
+		return
+	}
+
+	if err := h.storage.DeleteObject(ctx, key); err != nil {
+		if errors.Is(err, storage.ErrObjectNotFound) {
+			c.JSON(consts.StatusNotFound, map[string]string{"error": "file not found"})
+			return
+		}
+		c.JSON(consts.StatusInternalServerError, map[string]string{"error": "delete file failed"})
+		return
+	}
+
+	c.JSON(consts.StatusOK, map[string]string{"status": "deleted"})
+}
 
 func (h *FileHandler) Upload(ctx context.Context, c *app.RequestContext) {
 	uid := ctxutil.GetUIDFromCtx(ctx)

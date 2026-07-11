@@ -39,6 +39,7 @@ func Register(r *server.Hertz, st storage.Storage) {
 	fileAPI := api.Group("/files")
 	fileAPI.POST("/upload", files.Upload)
 	fileAPI.GET("/*path", files.GetPrivateFile)
+	fileAPI.DELETE("/*path", files.DeletePrivateFile)
 
 	workflowAPI := api.Group("/workflow_api")
 

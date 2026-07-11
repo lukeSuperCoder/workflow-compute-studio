@@ -88,6 +88,28 @@ file_upload_check() {
     log "expected private file owner check to return 403, got $forbidden_status"
     return 1
   fi
+
+  log "checking local file delete access"
+  local delete_response
+  delete_response="$(curl -fsS -X DELETE "$BASE_URL/api/files/$file_key")"
+  if ! echo "$delete_response" | jq -e '.status == "deleted"' >/dev/null; then
+    log "delete did not return deleted status: $delete_response"
+    return 1
+  fi
+
+  local after_delete_status
+  after_delete_status="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/api/files/$file_key")"
+  if [[ "$after_delete_status" != "404" ]]; then
+    log "expected 404 after delete, got $after_delete_status"
+    return 1
+  fi
+
+  local delete_forbidden_status
+  delete_forbidden_status="$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/api/files/uploads/10002/not-owned.txt")"
+  if [[ "$delete_forbidden_status" != "403" ]]; then
+    log "expected delete cross-owner check to return 403, got $delete_forbidden_status"
+    return 1
+  fi
 }
 
 seed_smoke_identity() {

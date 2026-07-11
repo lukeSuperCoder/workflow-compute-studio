@@ -96,3 +96,26 @@ func TestStorageRejectsFileSymlinkEscape(t *testing.T) {
 		t.Fatal("expected file symlink escape to be rejected")
 	}
 }
+func TestStorageDeleteObject(t *testing.T) {
+	ctx := context.Background()
+	st, err := New(t.TempDir(), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = st.PutObject(ctx, "uploads/10001/2026-07/file.txt", []byte("hello")); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = st.DeleteObject(ctx, "uploads/10001/2026-07/file.txt"); err != nil {
+		t.Fatalf("delete failed: %v", err)
+	}
+
+	if _, err = st.GetObject(ctx, "uploads/10001/2026-07/file.txt"); err == nil {
+		t.Fatal("expected object to be gone after delete")
+	}
+
+	if err = st.DeleteObject(ctx, "uploads/10001/2026-07/file.txt"); err == nil {
+		t.Fatal("expected error when deleting non-existent object")
+	}
+}

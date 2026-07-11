@@ -157,6 +157,11 @@ workflow-smoke: workflow-env
 	@echo "Run workflow-only API smoke test"
 	@scripts/workflow_smoke_test.sh
 
+workflow-go-test:
+	@echo "Run workflow Go tests"
+	@cd backend && go test ./application/workflow ./domain/workflow/entity ./domain/workflow/service
+	@cd backend && go test -gcflags=all='-N -l' ./domain/workflow/internal/canvas/adaptor
+
 workflow-down: workflow-env
 	@echo "Stop isolated Mirap workflow middleware"
 	@docker compose -f $(WORKFLOW_COMPOSE_FILE) --env-file $(WORKFLOW_DOCKER_ENV_FILE) down
@@ -187,6 +192,7 @@ help:
 	@echo "  workflow-migrate - Apply workflow database migrations to the running MySQL container."
 	@echo "  workflow-server  - Start workflow-only backend with APP_ENV=workflow."
 	@echo "  workflow-smoke   - Run workflow-only API smoke test against LISTEN_ADDR."
+	@echo "  workflow-go-test - Run workflow Go unit tests with mockey-compatible flags."
 	@echo "  workflow-down    - Stop isolated workflow MySQL and Redis."
 	@echo ""
 	@echo "OceanBase Commands:"

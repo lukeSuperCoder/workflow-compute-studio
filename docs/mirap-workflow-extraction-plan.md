@@ -579,7 +579,7 @@ MINIO_DEFAULT_BUCKETS
 - 已执行 `node common/scripts/install-run-rush.js update` 恢复 Rush 依赖树。
 - `cd frontend/packages/workflow/adapter/base && npm run test -- get-enabled-node-types.test.ts` 通过，覆盖节点面板白名单与 loop-scoped 节点。
 - `cd frontend/packages/workflow/playground && npm run test -- constants.test.ts` 通过，覆盖 `NODES_V2` 白名单入口不再使用旧节点 barrel、白名单 registry 完整、白名单外历史节点走 unsupported shell。
-- `go test ./domain/workflow/internal/canvas/adaptor` 当前受既有 `mockey` 与本机 Go runtime `runtime.duffcopy/runtime.duffzero` 符号问题影响无法编译，和本阶段白名单改动无关；其他工作流核心包已通过。
+- `go test -gcflags=all='-N -l' ./domain/workflow/internal/canvas/adaptor` 通过；已补 `make workflow-go-test` 统一执行工作流 Go 单测并对 `mockey` 包使用兼容 flags。
 
 后端将统一注册改为显式节点目录，例如：
 

@@ -20,10 +20,9 @@ import { useEffect, useRef } from 'react';
 import { nanoid } from 'nanoid';
 import { toString } from 'lodash-es';
 import { useSelectVoiceModal } from '@coze-workflow/resources-adapter';
-import { workflowApi } from '@coze-workflow/base';
 import { type EditorAPI } from '@coze-editor/editor/preset-code';
 import { I18n } from '@coze-arch/i18n';
-import { upLoadFile } from '@coze-arch/bot-utils';
+import { uploadLocalFile } from '@coze-arch/bot-utils';
 import { IconCozUpload, IconCozPlus } from '@coze-arch/coze-design/icons';
 import { Toast, Upload } from '@coze-arch/coze-design';
 import { EditorSelection } from '@codemirror/state';
@@ -36,26 +35,15 @@ import { generateUrlWithFilename, TEST_RUN_FILE_UPLOADING_KEY } from './utils';
 import css from './completion.module.less';
 
 const upload = async (file: any, fileType: 'object' | 'image') => {
-  const uri = await upLoadFile({
-    biz: 'workflow',
-    fileType,
+  void fileType;
+
+  const result = await uploadLocalFile({
     file,
   });
-  if (!uri) {
-    throw new Error('no uri');
-  }
-  const { url } = await workflowApi.SignImageURL(
-    {
-      uri,
-    },
-    {
-      __disableErrorToast: true,
-    },
-  );
-  if (!url) {
+  if (!result.url) {
     throw new Error(I18n.t('imageflow_upload_error'));
   }
-  return url;
+  return result.url;
 };
 
 interface UploadButtonProps {

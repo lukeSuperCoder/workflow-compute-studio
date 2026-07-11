@@ -50,7 +50,7 @@ func SessionAuthMW() app.HandlerFunc {
 			return
 		}
 
-		if noNeedSessionCheckPath[string(ctx.GetRequest().URI().Path())] {
+		if noNeedSessionCheckPath[string(ctx.GetRequest().URI().Path())] || noNeedSessionCheckPrefix(ctx) {
 			ctx.Next(c)
 			return
 		}
@@ -81,6 +81,11 @@ func SessionAuthMW() app.HandlerFunc {
 
 		ctx.Next(c)
 	}
+}
+
+func noNeedSessionCheckPrefix(ctx *app.RequestContext) bool {
+	path := string(ctx.GetRequest().URI().Path())
+	return strings.HasPrefix(path, "/assets/")
 }
 
 func storeWorkflowAuthBypassSession(ctx context.Context) bool {

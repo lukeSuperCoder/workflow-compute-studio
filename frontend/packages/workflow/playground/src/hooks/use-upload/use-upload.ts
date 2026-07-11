@@ -18,11 +18,9 @@
 import { useState } from 'react';
 
 import { nanoid } from 'nanoid';
-import { workflowApi } from '@coze-workflow/base/api';
 import { type ViewVariableType } from '@coze-workflow/base';
 import { I18n } from '@coze-arch/i18n';
-import { upLoadFile } from '@coze-arch/bot-utils';
-import { CustomError } from '@coze-arch/bot-error';
+import { uploadLocalFile } from '@coze-arch/bot-utils';
 import { Toast } from '@coze-arch/coze-design';
 
 import { validate } from './validate';
@@ -76,9 +74,7 @@ export const useUpload = (props?: UploadConfig) => {
 
     try {
       const doUpload = async () =>
-        await upLoadFile({
-          biz: 'workflow',
-          fileType,
+        await uploadLocalFile({
           file,
           getProgress: percent => {
             updateFileItemProps(file.uid, {
@@ -93,24 +89,10 @@ export const useUpload = (props?: UploadConfig) => {
         }, timeout);
       }
 
-      const uri = await doUpload();
-
-      if (!uri) {
-        throw new CustomError('normal_error', 'no uri');
-      }
+      const { url } = await doUpload();
 
       // Upload complete, clear timeout timer
       clearTimeout(progressTimer);
-
-      // Add uri and get the url.
-      const { url } = await workflowApi.SignImageURL(
-        {
-          uri,
-        },
-        {
-          __disableErrorToast: true,
-        },
-      );
 
       if (!url) {
         throw new Error(I18n.t('imageflow_upload_error'));

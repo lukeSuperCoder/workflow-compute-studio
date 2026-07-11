@@ -48,14 +48,15 @@ func main() {
 
 	setLogLevel()
 
-	if _, err := workflowapp.Init(ctx); err != nil {
+	deps, err := workflowapp.Init(ctx)
+	if err != nil {
 		panic("InitializeWorkflowApp failed, err=" + err.Error())
 	}
 
-	startHTTPServer()
+	startHTTPServer(deps)
 }
 
-func startHTTPServer() {
+func startHTTPServer(deps *workflowapp.Dependencies) {
 	maxRequestBodySize := os.Getenv("MAX_REQUEST_BODY_SIZE")
 	maxSize := conv.StrToInt64D(maxRequestBodySize, 1024*1024*200)
 	addr := getEnv("LISTEN_ADDR", ":8888")
@@ -93,7 +94,7 @@ func startHTTPServer() {
 	s.Use(middleware.SessionAuthMW())
 	s.Use(middleware.I18nMW())
 
-	workflowrouter.Register(s)
+	workflowrouter.Register(s, deps.Storage)
 	s.Spin()
 }
 

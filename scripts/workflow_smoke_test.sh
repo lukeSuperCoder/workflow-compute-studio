@@ -57,6 +57,39 @@ require_field() {
   fi
 }
 
+file_upload_check() {
+  log "checking local file upload/read access"
+  printf 'workflow smoke upload %s\n' "$RUN_ID" >"$TMP_DIR/upload.txt"
+
+  curl -fsS -X POST "$BASE_URL/api/files/upload" \
+    -F "file=@$TMP_DIR/upload.txt;type=text/plain" \
+    >"$TMP_DIR/upload-response.json"
+
+  require_field "$TMP_DIR/upload-response.json" '.key' "uploaded file key"
+  require_field "$TMP_DIR/upload-response.json" '.url' "uploaded file url"
+
+  local file_key file_url
+  file_key="$(jq -er '.key' "$TMP_DIR/upload-response.json")"
+  file_url="$(jq -er '.url' "$TMP_DIR/upload-response.json")"
+  if [[ "$file_key" != uploads/${SMOKE_USER_ID}/* ]]; then
+    log "uploaded file key has unexpected owner prefix: $file_key"
+    return 1
+  fi
+
+  curl -fsS "$BASE_URL$file_url" >"$TMP_DIR/upload-read.txt"
+  if ! cmp -s "$TMP_DIR/upload.txt" "$TMP_DIR/upload-read.txt"; then
+    log "uploaded file content mismatch"
+    return 1
+  fi
+
+  local forbidden_status
+  forbidden_status="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/api/files/uploads/10002/not-owned.txt")"
+  if [[ "$forbidden_status" != "403" ]]; then
+    log "expected private file owner check to return 403, got $forbidden_status"
+    return 1
+  fi
+}
+
 seed_smoke_identity() {
   log "seeding smoke user/space in isolated database"
   mysql_exec <<SQL
@@ -77,6 +110,7 @@ SQL
 health_check() {
   log "checking health endpoint"
   curl -fsS "$BASE_URL/healthz" | jq -e '.status == "ok"' >/dev/null
+  curl -fsS "$BASE_URL/assets/default_icon/workflow_icon/icon-start.jpg" >/dev/null
 }
 
 create_workflow() {
@@ -224,9 +258,17 @@ run_workflow() {
   local execute_id
   execute_id="$(jq -er '.data.execute_id' "$TMP_DIR/test-run-response.json")"
 
-  curl -fsS "$BASE_URL/api/workflow_api/get_process?workflow_id=${workflow_id}&space_id=${SMOKE_SPACE_ID}&execute_id=${execute_id}" \
-    >"$TMP_DIR/process-response.json"
-  assert_code_zero "$TMP_DIR/process-response.json" "get_process"
+  local attempt
+  for attempt in {1..20}; do
+    curl -fsS "$BASE_URL/api/workflow_api/get_process?workflow_id=${workflow_id}&space_id=${SMOKE_SPACE_ID}&execute_id=${execute_id}" \
+      >"$TMP_DIR/process-response.json"
+    assert_code_zero "$TMP_DIR/process-response.json" "get_process"
+    if jq -e '.data.executeStatus == 2 and (.data.nodeResults | length >= 2)' "$TMP_DIR/process-response.json" >/dev/null; then
+      return 0
+    fi
+    sleep 0.2
+  done
+
   if ! jq -e '.data.executeStatus == 2 and (.data.nodeResults | length >= 2)' "$TMP_DIR/process-response.json" >/dev/null; then
     log "workflow execution did not complete successfully:"
     cat "$TMP_DIR/process-response.json"
@@ -244,6 +286,7 @@ main() {
   jq -n --arg space_id "$SMOKE_SPACE_ID" '{space_id:$space_id,page:1,size:10}' >"$TMP_DIR/list.json"
   post_json "/api/workflow_api/workflow_list" "$TMP_DIR/list.json" >"$TMP_DIR/list-response.json"
   assert_code_zero "$TMP_DIR/list-response.json" "workflow_list"
+  file_upload_check
 
   log "validating Mirap fixture save/reopen/publish path"
   create_workflow "mirap_fixture_smoke_${RUN_ID}" "Mirap fixture smoke" "$TMP_DIR/mirap-create-response.json"

@@ -24,14 +24,22 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 
 	coze "github.com/coze-dev/coze-studio/backend/api/handler/coze"
+	"github.com/coze-dev/coze-studio/backend/infra/storage"
 )
 
-func Register(r *server.Hertz) {
+func Register(r *server.Hertz, st storage.Storage) {
 	r.GET("/healthz", func(_ context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusOK, map[string]string{"status": "ok"})
 	})
 
+	files := NewFileHandler(st)
+	r.GET("/assets/*path", files.GetPublicAsset)
+
 	api := r.Group("/api")
+	fileAPI := api.Group("/files")
+	fileAPI.POST("/upload", files.Upload)
+	fileAPI.GET("/*path", files.GetPrivateFile)
+
 	workflowAPI := api.Group("/workflow_api")
 
 	workflowAPI.POST("/create", coze.CreateWorkflow)

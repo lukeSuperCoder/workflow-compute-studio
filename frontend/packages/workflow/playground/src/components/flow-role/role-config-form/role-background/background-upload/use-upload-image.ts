@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { workflowApi } from '@coze-workflow/base';
 import { I18n } from '@coze-arch/i18n';
-import { upLoadFile } from '@coze-arch/bot-utils';
+import { uploadLocalFile } from '@coze-arch/bot-utils';
 import { Toast } from '@coze-arch/bot-semi';
 
 export const useUploadImage = ({
@@ -37,32 +36,17 @@ export const useUploadImage = ({
   const upload = async (file: File) => {
     let uri: string, url: string;
     try {
-      uri = await upLoadFile({
-        biz: 'workflow',
-        fileType: 'image',
+      const result = await uploadLocalFile({
         file,
       });
+      uri = result.key;
+      url = result.url;
     } catch {
       handleError();
       return;
     }
-    if (!uri) {
+    if (!uri || !url) {
       handleError();
-      return;
-    }
-
-    try {
-      const data = await workflowApi.SignImageURL({
-        uri,
-        Scene: 'AUDIT',
-      });
-      url = data.url;
-      if (!url) {
-        handleError();
-        return;
-      }
-    } catch {
-      onUploadError();
       return;
     }
     onUploadSuccess({

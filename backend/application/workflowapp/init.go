@@ -19,6 +19,7 @@ package workflowapp
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"gorm.io/gorm"
 
@@ -47,6 +48,7 @@ import (
 	"github.com/coze-dev/coze-studio/backend/infra/storage"
 	storageImpl "github.com/coze-dev/coze-studio/backend/infra/storage/impl"
 	"github.com/coze-dev/coze-studio/backend/pkg/ctxcache"
+	"github.com/coze-dev/coze-studio/backend/pkg/logs"
 	"github.com/coze-dev/coze-studio/backend/types/consts"
 )
 
@@ -68,6 +70,7 @@ func Init(ctx context.Context) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	seedDefaultAssets(ctx, oss)
 
 	db, err := mysqlImpl.New()
 	if err != nil {
@@ -121,6 +124,58 @@ func Init(ctx context.Context) (*Dependencies, error) {
 		Memory:   memorySVC,
 		Workflow: workflowSVC,
 	}, nil
+}
+
+func seedDefaultAssets(ctx context.Context, st storage.Storage) {
+	sourceDir := os.Getenv("WORKFLOW_DEFAULT_ASSET_DIR")
+	if sourceDir == "" {
+		sourceDir = "../docker/volumes/minio/default_icon"
+	}
+
+	absSourceDir, err := filepath.Abs(sourceDir)
+	if err != nil {
+		logs.CtxWarnf(ctx, "resolve default asset dir failed: %v", err)
+		return
+	}
+	if stat, err := os.Stat(absSourceDir); err != nil || !stat.IsDir() {
+		logs.CtxWarnf(ctx, "skip default asset seed, dir unavailable: %s", absSourceDir)
+		return
+	}
+
+	err = filepath.WalkDir(absSourceDir, func(path string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		rel, err := filepath.Rel(absSourceDir, path)
+		if err != nil {
+			return err
+		}
+		key := "default_icon/" + filepath.ToSlash(rel)
+		if _, err = st.HeadObject(ctx, key); err == nil {
+			return nil
+		}
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		err = st.PutObjectWithReader(ctx, key, file)
+		closeErr := file.Close()
+		if err != nil {
+			return err
+		}
+		return closeErr
+	})
+	if err != nil {
+		logs.CtxWarnf(ctx, "seed default assets failed: %v", err)
+		return
+	}
+
+	logs.CtxInfof(ctx, "default assets seeded from %s", absSourceDir)
 }
 
 func setWorkflowDefaults() {

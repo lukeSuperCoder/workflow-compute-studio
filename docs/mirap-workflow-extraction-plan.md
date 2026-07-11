@@ -476,16 +476,18 @@ WorkflowAPI
 
 预计：3～4 天。
 
+状态（2026-07-11）：进行中。`STORAGE_TYPE=local`、本地文件系统实现、workflow-only `/assets/*path`、`/api/files/upload`、`/api/files/*path` 已接入；workflow-only 启动会将默认图标资源种到 local storage；workflow 前端上传点已从 `upLoadFile` / `SignImageURL` 切换为 `/api/files/upload` multipart 上传。已通过后端局部测试、脚本语法、旧上传调用扫描和 diff 空白检查；本轮真实 `make workflow-smoke` 受 Codex 审批/额度限制未能复跑，需下次启动服务后补跑。
+
 工作内容：
 
-- 实现 `infra/storage/localfs`。
-- 静态节点图标迁入仓库资源目录。
-- 修改节点图标 URL 初始化逻辑。
-- 新增 `/assets/*path`。
-- 新增 `/api/files/upload` 和私有文件读取接口。
-- 移除工作流对 ImageX 上传凭证的依赖。
-- 修改前端上传适配器。
-- 清理全部 MinIO 环境变量。
+- 实现 `infra/storage/localfs`。（已完成基础实现和安全单测）
+- 静态节点图标迁入仓库资源目录。（当前先从仓库默认图标目录启动种子到 local storage，后续再瘦身正式 assets 目录）
+- 修改节点图标 URL 初始化逻辑。（local storage 返回 `/assets/default_icon/...`）
+- 新增 `/assets/*path`。（workflow-only 后端已接入）
+- 新增 `/api/files/upload` 和私有文件读取接口。（workflow-only 后端已接入）
+- 移除工作流对 ImageX 上传凭证的依赖。（workflow 前端包内旧调用已清零）
+- 修改前端上传适配器。（已切到 `/api/files/upload`，待安装前端依赖后做 UI 回归）
+- 清理全部 MinIO 环境变量。（workflow-only 环境不再需要 `MINIO_*`）
 
 目标环境变量：
 
@@ -494,7 +496,10 @@ STORAGE_TYPE=local
 STORAGE_ROOT=./storage
 STORAGE_PUBLIC_BASE_URL=http://localhost:8888
 MAX_UPLOAD_SIZE=52428800
+WORKFLOW_DEFAULT_ASSET_DIR=./assets/default_icon
 ```
+
+当前过渡实现中，`WORKFLOW_DEFAULT_ASSET_DIR` 仍可指向仓库已有的 `../docker/volumes/minio/default_icon` 作为种子来源；后续资源瘦身时再迁到正式 `assets/default_icon`。
 
 需要移除：
 

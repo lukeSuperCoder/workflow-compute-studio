@@ -251,15 +251,64 @@ func (s *Storage) pathForKey(objectKey string) (string, error) {
 	}
 
 	target := filepath.Join(s.rootDir, filepath.FromSlash(key))
-	rel, err := filepath.Rel(s.rootDir, target)
-	if err != nil {
-		return "", err
-	}
-	if strings.HasPrefix(rel, ".."+string(filepath.Separator)) || rel == ".." {
+	if !s.isWithinRoot(target) {
 		return "", fmt.Errorf("object key escapes storage root: %s", objectKey)
+	}
+	if err = s.ensureSymlinkSafe(target); err != nil {
+		return "", err
 	}
 
 	return target, nil
+}
+
+func (s *Storage) isWithinRoot(path string) bool {
+	rel, err := filepath.Rel(s.rootDir, path)
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+func (s *Storage) ensureSymlinkSafe(target string) error {
+	root, err := filepath.EvalSymlinks(s.rootDir)
+	if err != nil {
+		return err
+	}
+
+	checkPath := target
+	if _, err = os.Lstat(checkPath); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		checkPath = filepath.Dir(checkPath)
+		for {
+			if _, err = os.Lstat(checkPath); err == nil {
+				break
+			}
+			if !os.IsNotExist(err) {
+				return err
+			}
+			next := filepath.Dir(checkPath)
+			if next == checkPath {
+				return err
+			}
+			checkPath = next
+		}
+	}
+
+	resolved, err := filepath.EvalSymlinks(checkPath)
+	if err != nil {
+		return err
+	}
+	rel, err := filepath.Rel(root, resolved)
+	if err != nil {
+		return err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("object key resolves outside storage root: %s", target)
+	}
+
+	return nil
 }
 
 func (s *Storage) cleanKey(objectKey string) (string, error) {

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { workflowApi } from '@coze-workflow/base/api';
 import { REPORT_EVENTS } from '@coze-arch/report-events';
 import { I18n } from '@coze-arch/i18n';
-import { upLoadFile } from '@coze-arch/bot-utils';
+import { uploadLocalFile } from '@coze-arch/bot-utils';
 import { CustomError } from '@coze-arch/bot-error';
 import { FileBizType } from '@coze-arch/bot-api/developer_api';
 import { DeveloperApi } from '@coze-arch/bot-api';
@@ -185,14 +184,12 @@ class ImageUploader {
         );
 
       const doUpload = async () => {
-        const uri = await upLoadFile({
-          biz: 'workflow',
+        const uploadResult = await uploadLocalFile({
           file,
-          fileType: 'image',
         })
           .then(result => {
-            if (!result) {
-              throw new CustomError('normal_error', 'no uri');
+            if (!result.key || !result.url) {
+              throw new CustomError('normal_error', 'invalid upload result');
             }
             return result;
           })
@@ -202,39 +199,19 @@ class ImageUploader {
               errNo: ImgUploadErrNo.UploadFail,
               msg: I18n.t('imageflow_upload_error'),
             });
-            return '';
+            return undefined;
           });
 
-        if (!uri) {
+        if (!uploadResult) {
           return;
         }
-        // Get URL
-        const resp = await workflowApi
-          .SignImageURL(
-            {
-              uri,
-            },
-            {
-              __disableErrorToast: true,
-            },
-          )
-          .catch(() => null);
-        const url = resp?.url || '';
 
-        if (url) {
-          resolve({
-            isSuccess: true,
-            errNo: ImgUploadErrNo.Success,
-            uri,
-            url,
-          });
-        } else {
-          resolve({
-            isSuccess: false,
-            errNo: ImgUploadErrNo.GetUrlFail,
-            msg: I18n.t('imageflow_upload_error'),
-          });
-        }
+        resolve({
+          isSuccess: true,
+          errNo: ImgUploadErrNo.Success,
+          uri: uploadResult.key,
+          url: uploadResult.url,
+        });
       };
 
       doUpload().finally(() => {

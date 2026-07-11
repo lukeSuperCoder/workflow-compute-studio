@@ -19,6 +19,7 @@ export { arrayBufferToObject } from './array-buffer-to-object';
 export { isMobile } from './is-mobile';
 export { safeJSONParse, typeSafeJSONParse } from './safe-json-parse';
 export { type BytedUploader, upLoadFile } from './upload-file';
+export { uploadLocalFile, type LocalUploadFileResult } from './upload-local-file';
 export { messageReportEvent, type MessageReportEvent } from './message-report';
 export { ArrayUtil } from './array';
 export { skillKeyToApiStatusKeyTransformer } from './skill';

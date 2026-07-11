@@ -1,4 +1,4 @@
-.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-server workflow-smoke workflow-down
+.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-server workflow-smoke workflow-down
 
 # 定义脚本路径
 SCRIPTS_DIR := ./scripts
@@ -145,6 +145,10 @@ workflow-middleware: workflow-env
 	@echo "Start isolated Mirap workflow MySQL and Redis"
 	@docker compose -f $(WORKFLOW_COMPOSE_FILE) --env-file $(WORKFLOW_DOCKER_ENV_FILE) up -d --wait
 
+workflow-migrate: workflow-env
+	@echo "Apply workflow database migrations"
+	@scripts/workflow_migrate.sh
+
 workflow-server: workflow-env
 	@echo "Start workflow-only backend server"
 	@cd backend && APP_ENV=workflow go run ./cmd/workflow-server
@@ -180,6 +184,7 @@ help:
 	@echo "  setup_es_index   - Setup elasticsearch index."
 	@echo "  workflow-env     - Create isolated workflow env files."
 	@echo "  workflow-middleware - Start isolated workflow MySQL and Redis."
+	@echo "  workflow-migrate - Apply workflow database migrations to the running MySQL container."
 	@echo "  workflow-server  - Start workflow-only backend with APP_ENV=workflow."
 	@echo "  workflow-smoke   - Run workflow-only API smoke test against LISTEN_ADDR."
 	@echo "  workflow-down    - Stop isolated workflow MySQL and Redis."

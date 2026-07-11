@@ -542,6 +542,19 @@ MINIO_DEFAULT_BUCKETS
 
 完成标准：空数据库执行 migration 后，可以注册用户、创建空间、创建和发布工作流。
 
+状态（2026-07-11）：阶段 4 已完成。本次验证全部通过：
+- 新增独立 migration 目录，包含四组 migration：`migrations/001_account.sql`（user、space、space_user）、`migrations/002_workflow.sql`（workflow_meta、workflow_draft、workflow_version、workflow_reference）、`migrations/003_execution.sql`（workflow_execution、node_execution、workflow_snapshot）、`migrations/004_upload.sql`（files）。
+- `migrations/workflow_schema.sql` 为四组 migration 的合并全量初始化脚本，供 Docker `docker-entrypoint-initdb.d` 使用。
+- `docker-compose-workflow.yml` 已改为挂载 `../migrations/workflow_schema.sql`，不再使用全量 `schema.sql`。
+- `scripts/workflow_migrate.sh` 提供可重复执行的 migration 升级脚本，通过 `_mirap_schema_migrations` 表追踪已应用的 migration。
+- `Makefile` 新增 `workflow-migrate` 目标。
+- 空库验证：`make workflow-down` + 清空 `docker/data-workflow/mysql` + `make workflow-middleware` 后，Docker init 自动创建 11 张精简表。
+- `make workflow-migrate` 二次执行验证幂等性：Applied=0 Skipped=4。
+- `make workflow-server` 在空库上正常启动。
+- `make workflow-smoke` 全量通过：healthz、workflow_list、文件上传/读取/删除、Mirap fixture 保存/重开/发布、最小工作流 test_run + get_process。
+- 空库验证后业务数据：user=1、space=1、workflow_meta=2、workflow_version=1、workflow_draft=2。
+- 从全量 55 张表缩减为 11 张工作流必需表，移除了 ChatFlow、Agent、Knowledge、Plugin、Model、Conversation、Tool、Template 等领域表。
+
 ### 阶段 5：节点注册白名单化
 
 预计：3～5 天。

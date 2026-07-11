@@ -14,7 +14,7 @@ services:
       - "${WORKFLOW_MYSQL_PORT:-3307}:3306"
     volumes:
       - ./data-workflow/mysql:/var/lib/mysql
-      - ./volumes/mysql/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ../migrations/workflow_schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci

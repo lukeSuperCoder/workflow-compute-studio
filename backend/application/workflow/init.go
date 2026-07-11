@@ -66,7 +66,12 @@ func initWorkflowConfig() (workflow.WorkflowConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	configBs, err := os.ReadFile(filepath.Join(wd, "resources/conf/workflow/config.yaml"))
+	configPath := filepath.Join(wd, "resources/conf/workflow/config.yaml")
+	configBs, err := os.ReadFile(configPath)
+	if os.IsNotExist(err) {
+		configPath = filepath.Join(wd, "conf/workflow/config.yaml")
+		configBs, err = os.ReadFile(configPath)
+	}
 	if err != nil {
 		return nil, err
 	}

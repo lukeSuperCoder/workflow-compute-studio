@@ -1,4 +1,4 @@
-.PHONY: debug fe server sync_db dump_db middleware web down clean python help
+.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-server workflow-smoke workflow-down
 
 # 定义脚本路径
 SCRIPTS_DIR := ./scripts
@@ -16,6 +16,9 @@ MYSQL_INIT_SQL := ./docker/volumes/mysql/sql_init.sql
 ENV_FILE := ./docker/.env.debug
 WEB_ENV_FILE := ./docker/.env
 OCEANBASE_ENV_FILE := ./docker/.env.debug
+WORKFLOW_COMPOSE_FILE := docker/docker-compose-workflow.yml
+WORKFLOW_DOCKER_ENV_FILE := ./docker/.env.workflow
+WORKFLOW_BACKEND_ENV_FILE := ./backend/.env.workflow
 STATIC_DIR := ./bin/resources/static
 ES_INDEX_SCHEMA := ./docker/volumes/elasticsearch/es_index_schema
 ES_SETUP_SCRIPT := ./docker/volumes/elasticsearch/setup_es.sh
@@ -128,6 +131,32 @@ oceanbase_server_debug:
 	@echo "Building and run OceanBase debug server..."
 	@APP_ENV=debug bash $(BUILD_SERVER_SCRIPT) -start
 
+workflow-env:
+	@if [ ! -f "$(WORKFLOW_DOCKER_ENV_FILE)" ]; then \
+		echo "Env file '$(WORKFLOW_DOCKER_ENV_FILE)' not found, using example env..."; \
+		cp ./docker/.env.workflow.example $(WORKFLOW_DOCKER_ENV_FILE); \
+	fi
+	@if [ ! -f "$(WORKFLOW_BACKEND_ENV_FILE)" ]; then \
+		echo "Env file '$(WORKFLOW_BACKEND_ENV_FILE)' not found, using example env..."; \
+		cp ./backend/.env.workflow.example $(WORKFLOW_BACKEND_ENV_FILE); \
+	fi
+
+workflow-middleware: workflow-env
+	@echo "Start isolated Mirap workflow MySQL and Redis"
+	@docker compose -f $(WORKFLOW_COMPOSE_FILE) --env-file $(WORKFLOW_DOCKER_ENV_FILE) up -d --wait
+
+workflow-server: workflow-env
+	@echo "Start workflow-only backend server"
+	@cd backend && APP_ENV=workflow go run ./cmd/workflow-server
+
+workflow-smoke: workflow-env
+	@echo "Run workflow-only API smoke test"
+	@scripts/workflow_smoke_test.sh
+
+workflow-down: workflow-env
+	@echo "Stop isolated Mirap workflow middleware"
+	@docker compose -f $(WORKFLOW_COMPOSE_FILE) --env-file $(WORKFLOW_DOCKER_ENV_FILE) down
+
 help:
 	@echo "Usage: make [target]"
 	@echo ""
@@ -149,6 +178,11 @@ help:
 	@echo "  python           - Setup python environment."
 	@echo "  atlas-hash       - Rehash atlas migration files."
 	@echo "  setup_es_index   - Setup elasticsearch index."
+	@echo "  workflow-env     - Create isolated workflow env files."
+	@echo "  workflow-middleware - Start isolated workflow MySQL and Redis."
+	@echo "  workflow-server  - Start workflow-only backend with APP_ENV=workflow."
+	@echo "  workflow-smoke   - Run workflow-only API smoke test against LISTEN_ADDR."
+	@echo "  workflow-down    - Stop isolated workflow MySQL and Redis."
 	@echo ""
 	@echo "OceanBase Commands:"
 	@echo "  oceanbase_env    - Setup OceanBase environment file (like 'env')."

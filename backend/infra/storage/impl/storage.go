@@ -23,6 +23,7 @@ import (
 
 	"github.com/coze-dev/coze-studio/backend/infra/imagex"
 	"github.com/coze-dev/coze-studio/backend/infra/storage"
+	"github.com/coze-dev/coze-studio/backend/infra/storage/impl/localfs"
 	"github.com/coze-dev/coze-studio/backend/infra/storage/impl/minio"
 	"github.com/coze-dev/coze-studio/backend/infra/storage/impl/s3"
 	"github.com/coze-dev/coze-studio/backend/infra/storage/impl/tos"
@@ -35,6 +36,8 @@ type Storage = storage.Storage
 func New(ctx context.Context) (Storage, error) {
 	storageType := os.Getenv(consts.StorageType)
 	switch storageType {
+	case "local":
+		return localfs.New(os.Getenv("STORAGE_ROOT"), os.Getenv("STORAGE_PUBLIC_BASE_URL"))
 	case "minio":
 		return minio.New(
 			ctx,

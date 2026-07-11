@@ -4,7 +4,7 @@
   },
   "nodes": [
     {
-      "id": "start",
+      "id": "100001",
       "type": "1",
       "meta": { "position": { "x": 0, "y": 0 } },
       "data": {
@@ -385,7 +385,7 @@
       }
     },
     {
-      "id": "end",
+      "id": "900001",
       "type": "2",
       "meta": { "position": { "x": 1180, "y": 20 } },
       "data": {
@@ -434,9 +434,9 @@
     }
   ],
   "edges": [
-    { "sourceNodeID": "start", "targetNodeID": "area_ship" },
-    { "sourceNodeID": "start", "targetNodeID": "stay_calc" },
-    { "sourceNodeID": "start", "targetNodeID": "hover_detail" },
+    { "sourceNodeID": "100001", "targetNodeID": "area_ship" },
+    { "sourceNodeID": "100001", "targetNodeID": "stay_calc" },
+    { "sourceNodeID": "100001", "targetNodeID": "hover_detail" },
     { "sourceNodeID": "area_ship", "targetNodeID": "mirap_intersection" },
     { "sourceNodeID": "stay_calc", "targetNodeID": "mirap_intersection" },
     { "sourceNodeID": "hover_detail", "targetNodeID": "mirap_intersection" },
@@ -446,6 +446,6 @@
     { "sourceNodeID": "area_ship", "targetNodeID": "mirap_difference" },
     { "sourceNodeID": "stay_calc", "targetNodeID": "mirap_difference" },
     { "sourceNodeID": "hover_detail", "targetNodeID": "mirap_difference" },
-    { "sourceNodeID": "mirap_union", "targetNodeID": "end" }
+    { "sourceNodeID": "mirap_union", "targetNodeID": "900001" }
   ]
 }

@@ -8,6 +8,7 @@
 .env
 .env.debug
 .env.oceanbase
+.env.workflow
 
 # Test binary, built with `go test -c`
 *.test
@@ -45,6 +46,8 @@ output/*
 bin/*
 
 docker/data/*
+docker/data-workflow/*
+storage/*
 
 backend/static
 

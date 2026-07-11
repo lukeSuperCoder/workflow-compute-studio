@@ -391,6 +391,35 @@ test: add workflow compatibility fixtures
 
 预计：3～5 天。
 
+状态（2026-07-11）：阶段 2 收尾中。已新增 workflow-only 后端启动入口、工作流 API 白名单路由、`STORAGE_TYPE=local` 本地存储基础实现和隔离 MySQL/Redis 启动配置；当前 smoke 已覆盖创建、保存、查询、重新打开、发布和基础执行接口。
+
+启动与 API smoke（2026-07-11）：
+
+- `make workflow-middleware` 可启动独立 MySQL/Redis，并保持 healthy。
+- `make workflow-server` 可启动 workflow-only 后端，监听 `:8889`。
+- `make workflow-smoke` 已在隔离环境通过，覆盖 `/healthz`、`workflow_list`、`create`、`canvas`、`save`、`publish`、`node_type`、`test_run`、`get_process`。
+- Mirap fixture `testdata/workflows/mirap-all-nodes.canvas.json` 已将 Start/End 节点 ID 修正为后端约定的 `100001`/`900001`，并通过 `validate_tree`、保存、重新打开和发布校验。
+- 基础可执行链路使用最小 Start -> End 工作流覆盖，`test_run` 和 `get_process` 可返回执行成功。
+- `/api/workflow_api/released_workflows` 在当前源码修订中仍返回 `data:null`，发布结果已通过 `workflow_version` 表确认。
+
+隔离本地环境：
+
+```bash
+make workflow-env
+make workflow-middleware
+make workflow-server
+make workflow-smoke
+```
+
+默认使用独立容器、端口和数据目录：
+
+```text
+MySQL: mirap-workflow-mysql, 127.0.0.1:3307, docker/data-workflow/mysql
+Redis: mirap-workflow-redis, 127.0.0.1:6380, docker/data-workflow/redis
+Server: APP_ENV=workflow, backend/.env.workflow, LISTEN_ADDR=:8889
+Storage: STORAGE_TYPE=local, storage/
+```
+
 新增建议：
 
 ```text

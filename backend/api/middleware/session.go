@@ -19,7 +19,9 @@ package middleware
 import (
 	"context"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
 
@@ -37,6 +39,7 @@ import (
 var noNeedSessionCheckPath = map[string]bool{
 	"/api/passport/web/email/login/":       true,
 	"/api/passport/web/email/register/v2/": true,
+	"/healthz":                             true,
 }
 
 func SessionAuthMW() app.HandlerFunc {
@@ -48,6 +51,11 @@ func SessionAuthMW() app.HandlerFunc {
 		}
 
 		if noNeedSessionCheckPath[string(ctx.GetRequest().URI().Path())] {
+			ctx.Next(c)
+			return
+		}
+
+		if storeWorkflowAuthBypassSession(c) {
 			ctx.Next(c)
 			return
 		}
@@ -73,6 +81,33 @@ func SessionAuthMW() app.HandlerFunc {
 
 		ctx.Next(c)
 	}
+}
+
+func storeWorkflowAuthBypassSession(ctx context.Context) bool {
+	if os.Getenv("APP_ENV") != "workflow" {
+		return false
+	}
+
+	userIDText := os.Getenv("WORKFLOW_AUTH_BYPASS_USER_ID")
+	if userIDText == "" {
+		return false
+	}
+
+	userID, err := strconv.ParseInt(userIDText, 10, 64)
+	if err != nil || userID <= 0 {
+		return false
+	}
+
+	now := time.Now()
+	ctxcache.Store(ctx, consts.SessionDataKeyInCtx, &entity.Session{
+		UserID:    userID,
+		Locale:    "zh-CN",
+		UserEmail: "workflow-smoke@mirap.local",
+		CreatedAt: now,
+		ExpiresAt: now.Add(consts.DefaultSessionDuration),
+	})
+
+	return true
 }
 
 func AdminAuthMW() app.HandlerFunc {

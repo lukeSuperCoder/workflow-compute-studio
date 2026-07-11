@@ -559,6 +559,28 @@ MINIO_DEFAULT_BUCKETS
 
 预计：3～5 天。
 
+状态（2026-07-11）：阶段 5 已完成。本阶段新增并验证了 Mirap 节点白名单：
+- 后端新增 `entity.MirapNodeSet`，workflow-only 初始化时只注册白名单内 node adaptor，并让 `node_template_list` catalog 与白名单求交。
+- 修复 `node_template_list` 在请求全为白名单外节点时因空 map 回落全量 catalog 的泄漏问题；请求空列表时返回 Mirap 全白名单，请求具体列表时只返回交集。
+- workflow-only 路由补齐 `/api/workflow_api/node_template_list`。
+- 前端 `getEnabledNodeTypes` 改为 Mirap 白名单，Break、Continue、SetVariable 仅在 loop/batch 选中时出现。
+- 前端 `NODES_V2` 改为直连白名单节点模块，避免通过 `@/node-registries` barrel 静态引入 LLM、Plugin、Knowledge、Database、Chat 等旧节点。
+- 补齐 JSON 反序列化（JsonParser / ID 59）前端 registry、content、form-meta 和单节点试运行输入生成。
+- 白名单外历史节点注册轻量 unsupported shell，打开旧画布时显示“不支持节点”提示，不进入节点面板。
+
+验证记录（2026-07-11）：
+- `go test ./application/workflow ./domain/workflow/entity` 通过。
+- `go test ./domain/workflow/service` 通过。
+- `make workflow-middleware` 启动隔离 MySQL/Redis，均 Healthy。
+- `make workflow-server` 启动 workflow-only 后端，监听 `:8889`。
+- `make workflow-smoke` 通过，覆盖 healthz、workflow_list、文件上传/读取/删除、Mirap fixture 保存/重开/发布、最小工作流 test_run + get_process。
+- 手工调用 `/api/workflow_api/node_template_list` 请求 `3,4,58,59,1001`，响应只返回 `58,59,1001`，确认 LLM/Plugin 被过滤。
+- 六个 Mirap 节点的单节点试运行输入生成文件保持注册状态；live `nodeDebug` / `get_process` 证据仍见 `testdata/api/workflow/mirap-node-debug-live-samples.json`。其中三个本地 MMSI 集合节点成功，三个 HTTP-backed 节点受 `mirap-test.elane.com` DNS 限制返回真实失败记录。
+- 已执行 `node common/scripts/install-run-rush.js update` 恢复 Rush 依赖树。
+- `cd frontend/packages/workflow/adapter/base && npm run test -- get-enabled-node-types.test.ts` 通过，覆盖节点面板白名单与 loop-scoped 节点。
+- `cd frontend/packages/workflow/playground && npm run test -- constants.test.ts` 通过，覆盖 `NODES_V2` 白名单入口不再使用旧节点 barrel、白名单 registry 完整、白名单外历史节点走 unsupported shell。
+- `go test ./domain/workflow/internal/canvas/adaptor` 当前受既有 `mockey` 与本机 Go runtime `runtime.duffcopy/runtime.duffzero` 符号问题影响无法编译，和本阶段白名单改动无关；其他工作流核心包已通过。
+
 后端将统一注册改为显式节点目录，例如：
 
 ```go

@@ -78,6 +78,7 @@ type ApplicationService struct {
 	ImageX      imagex.ImageX // we set Imagex here, because Imagex is used as a proxy to get auth token, there is no actual correlation with the workflow domain.
 	TosClient   storage.Storage
 	IDGenerator idgen.IDGenerator
+	nodeSet     map[entity.NodeType]bool // when non-nil, restricts the node_type catalog to the whitelist
 }
 
 var (
@@ -85,6 +86,13 @@ var (
 	nodeIconURLCache   = make(map[string]string)
 	nodeIconURLCacheMu sync.Mutex
 )
+
+// SetNodeSet configures the whitelist of node types exposed by this service.
+// When set, GetNodeTemplateList intersects the requested node types with this
+// set so the node panel only shows whitelisted nodes.
+func (w *ApplicationService) SetNodeSet(set map[entity.NodeType]bool) {
+	w.nodeSet = set
+}
 
 func GetWorkflowDomainSVC() domainWorkflow.Service {
 	return SVC.DomainSVC
@@ -165,14 +173,39 @@ func (w *ApplicationService) GetNodeTemplateList(ctx context.Context, req *workf
 	}()
 
 	toQueryTypes := make(map[entity.NodeType]bool)
+	hasRequestedTypes := false
 	for _, t := range req.NodeTypes {
 		entityType := entity.IDStrToNodeType(t)
 		if len(entityType) == 0 {
 			logs.Warnf("get node type %v failed, err:=%v", t, err)
 			continue
 		}
+		hasRequestedTypes = true
 		toQueryTypes[entityType] = true
 	}
+
+	// When a node whitelist is configured (workflow-only / Mirap backend),
+	// intersect the requested types so the node panel only exposes whitelisted
+	// nodes even if the client requests the full catalogue.
+	if w.nodeSet != nil {
+		if !hasRequestedTypes {
+			for nt := range w.nodeSet {
+				toQueryTypes[nt] = true
+			}
+		} else {
+			for nt := range toQueryTypes {
+				if !w.nodeSet[nt] {
+					delete(toQueryTypes, nt)
+				}
+			}
+			if len(toQueryTypes) == 0 {
+				return &workflow.NodeTemplateListResponse{
+					Data: &workflow.NodeTemplateListData{},
+				}, nil
+			}
+		}
+	}
+
 	category2NodeMetaList, categories, err := GetWorkflowDomainSVC().ListNodeMeta(ctx, toQueryTypes)
 	if err != nil {
 		return nil, err

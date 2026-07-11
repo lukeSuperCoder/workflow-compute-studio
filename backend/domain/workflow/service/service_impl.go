@@ -2130,6 +2130,12 @@ func replaceRelatedWorkflowOrExternalResourceInWorkflowNodes(nodes []*vo.Node, r
 func RegisterAllNodeAdaptors() {
 	adaptor.RegisterAllNodeAdaptors()
 }
+
+// RegisterNodeAdaptorsForSet registers only the adaptors whose NodeType is in
+// the given set. A nil set is equivalent to RegisterAllNodeAdaptors.
+func RegisterNodeAdaptorsForSet(set map[entity.NodeType]bool) {
+	adaptor.RegisterNodeAdaptorsForSet(set)
+}
 func (i *impl) adaptToChatFlow(ctx context.Context, wID int64) error {
 	wfEntity, err := i.repo.GetEntity(ctx, &vo.GetPolicy{
 		ID:    wID,

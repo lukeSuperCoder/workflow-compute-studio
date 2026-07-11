@@ -596,152 +596,87 @@ func parseBatchMode(n *vo.Node) (
 
 // RegisterAllNodeAdaptors register all NodeType's NodeAdaptor.
 func RegisterAllNodeAdaptors() {
-	// register a generator function so that each time a NodeAdaptor is needed,
-	// we can provide a brand new Config instance.
-	nodes.RegisterNodeAdaptor(entity.NodeTypeEntry, func() nodes.NodeAdaptor {
-		return &entry.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeSelector, func() nodes.NodeAdaptor {
-		return &selector.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeBatch, func() nodes.NodeAdaptor {
-		return &batch.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeBreak, func() nodes.NodeAdaptor {
-		return &_break.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeContinue, func() nodes.NodeAdaptor {
-		return &_continue.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeInputReceiver, func() nodes.NodeAdaptor {
-		return &receiver.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeJsonSerialization, func() nodes.NodeAdaptor {
-		return &json.SerializationConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeJsonDeserialization, func() nodes.NodeAdaptor {
-		return &json.DeserializationConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeVariableAssigner, func() nodes.NodeAdaptor {
-		return &variableassigner.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeVariableAssignerWithinLoop, func() nodes.NodeAdaptor {
-		return &variableassigner.InLoopConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypePlugin, func() nodes.NodeAdaptor {
-		return &plugin.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeCodeRunner, func() nodes.NodeAdaptor {
-		return &code.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeOutputEmitter, func() nodes.NodeAdaptor {
-		return &emitter.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeExit, func() nodes.NodeAdaptor {
-		return &exit.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeVariableAggregator, func() nodes.NodeAdaptor {
-		return &variableaggregator.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeTextProcessor, func() nodes.NodeAdaptor {
-		return &textprocessor.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeIntentDetector, func() nodes.NodeAdaptor {
-		return &intentdetector.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeQuestionAnswer, func() nodes.NodeAdaptor {
-		return &qa.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeHTTPRequester, func() nodes.NodeAdaptor {
-		return &httprequester.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapAreaShipExtractor, func() nodes.NodeAdaptor {
-		return &mirapareaship.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapStayCalculation, func() nodes.NodeAdaptor {
-		return &mirapstaycalc.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapHoverDetail, func() nodes.NodeAdaptor {
-		return &miraphoverdetail.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIIntersection, func() nodes.NodeAdaptor {
-		return mirapmmsiset.NewIntersectionConfig()
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIUnion, func() nodes.NodeAdaptor {
-		return mirapmmsiset.NewUnionConfig()
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMirapMMSIDifference, func() nodes.NodeAdaptor {
-		return mirapmmsiset.NewDifferenceConfig()
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeLoop, func() nodes.NodeAdaptor {
-		return &loop.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeKnowledgeIndexer, func() nodes.NodeAdaptor {
-		return &knowledge.IndexerConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeKnowledgeRetriever, func() nodes.NodeAdaptor {
-		return &knowledge.RetrieveConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeKnowledgeDeleter, func() nodes.NodeAdaptor {
-		return &knowledge.DeleterConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeDatabaseInsert, func() nodes.NodeAdaptor {
-		return &database.InsertConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeDatabaseUpdate, func() nodes.NodeAdaptor {
-		return &database.UpdateConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeDatabaseQuery, func() nodes.NodeAdaptor {
-		return &database.QueryConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeDatabaseDelete, func() nodes.NodeAdaptor {
-		return &database.DeleteConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeDatabaseCustomSQL, func() nodes.NodeAdaptor {
-		return &database.CustomSQLConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeLLM, func() nodes.NodeAdaptor {
-		return &llm.Config{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeCreateConversation, func() nodes.NodeAdaptor {
-		return &conversation.CreateConversationConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeConversationUpdate, func() nodes.NodeAdaptor {
-		return &conversation.UpdateConversationConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeConversationDelete, func() nodes.NodeAdaptor {
-		return &conversation.DeleteConversationConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeConversationList, func() nodes.NodeAdaptor {
-		return &conversation.ConversationListConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeConversationHistory, func() nodes.NodeAdaptor {
-		return &conversation.ConversationHistoryConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeClearConversationHistory, func() nodes.NodeAdaptor {
-		return &conversation.ClearConversationHistoryConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeMessageList, func() nodes.NodeAdaptor {
-		return &conversation.MessageListConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeCreateMessage, func() nodes.NodeAdaptor {
-		return &conversation.CreateMessageConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeEditMessage, func() nodes.NodeAdaptor {
-		return &conversation.EditMessageConfig{}
-	})
-	nodes.RegisterNodeAdaptor(entity.NodeTypeDeleteMessage, func() nodes.NodeAdaptor {
-		return &conversation.DeleteMessageConfig{}
-	})
+	registerNodeAdaptors(nil)
+}
 
-	// register branch adaptors
-	nodes.RegisterBranchAdaptor(entity.NodeTypeSelector, func() nodes.BranchAdaptor {
-		return &selector.Config{}
-	})
-	nodes.RegisterBranchAdaptor(entity.NodeTypeIntentDetector, func() nodes.BranchAdaptor {
-		return &intentdetector.Config{}
-	})
-	nodes.RegisterBranchAdaptor(entity.NodeTypeQuestionAnswer, func() nodes.BranchAdaptor {
-		return &qa.Config{}
-	})
+// RegisterNodeAdaptorsForSet registers only the NodeAdaptors whose NodeType is
+// present in the given set. A nil set registers everything (full app); a non-nil
+// set registers only the whitelisted entries (workflow-only / Mirap backend).
+func RegisterNodeAdaptorsForSet(set map[entity.NodeType]bool) {
+	registerNodeAdaptors(set)
+}
+
+// nodeAdaptorEntry pairs a NodeType with its node-adaptor and optional
+// branch-adaptor factories.
+type nodeAdaptorEntry struct {
+	nodeType entity.NodeType
+	node     func() nodes.NodeAdaptor
+	branch   func() nodes.BranchAdaptor // set only for branching nodes
+}
+
+// allNodeAdaptorEntries returns the full catalogue of node-adaptor factories.
+// Fresh closures are returned so each registration provides a brand new Config
+// instance per node, matching the original per-call behaviour.
+func allNodeAdaptorEntries() []nodeAdaptorEntry {
+	return []nodeAdaptorEntry{
+		{entity.NodeTypeEntry, func() nodes.NodeAdaptor { return &entry.Config{} }, nil},
+		{entity.NodeTypeSelector, func() nodes.NodeAdaptor { return &selector.Config{} }, func() nodes.BranchAdaptor { return &selector.Config{} }},
+		{entity.NodeTypeBatch, func() nodes.NodeAdaptor { return &batch.Config{} }, nil},
+		{entity.NodeTypeBreak, func() nodes.NodeAdaptor { return &_break.Config{} }, nil},
+		{entity.NodeTypeContinue, func() nodes.NodeAdaptor { return &_continue.Config{} }, nil},
+		{entity.NodeTypeInputReceiver, func() nodes.NodeAdaptor { return &receiver.Config{} }, nil},
+		{entity.NodeTypeJsonSerialization, func() nodes.NodeAdaptor { return &json.SerializationConfig{} }, nil},
+		{entity.NodeTypeJsonDeserialization, func() nodes.NodeAdaptor { return &json.DeserializationConfig{} }, nil},
+		{entity.NodeTypeVariableAssigner, func() nodes.NodeAdaptor { return &variableassigner.Config{} }, nil},
+		{entity.NodeTypeVariableAssignerWithinLoop, func() nodes.NodeAdaptor { return &variableassigner.InLoopConfig{} }, nil},
+		{entity.NodeTypePlugin, func() nodes.NodeAdaptor { return &plugin.Config{} }, nil},
+		{entity.NodeTypeCodeRunner, func() nodes.NodeAdaptor { return &code.Config{} }, nil},
+		{entity.NodeTypeOutputEmitter, func() nodes.NodeAdaptor { return &emitter.Config{} }, nil},
+		{entity.NodeTypeExit, func() nodes.NodeAdaptor { return &exit.Config{} }, nil},
+		{entity.NodeTypeVariableAggregator, func() nodes.NodeAdaptor { return &variableaggregator.Config{} }, nil},
+		{entity.NodeTypeTextProcessor, func() nodes.NodeAdaptor { return &textprocessor.Config{} }, nil},
+		{entity.NodeTypeIntentDetector, func() nodes.NodeAdaptor { return &intentdetector.Config{} }, func() nodes.BranchAdaptor { return &intentdetector.Config{} }},
+		{entity.NodeTypeQuestionAnswer, func() nodes.NodeAdaptor { return &qa.Config{} }, func() nodes.BranchAdaptor { return &qa.Config{} }},
+		{entity.NodeTypeHTTPRequester, func() nodes.NodeAdaptor { return &httprequester.Config{} }, nil},
+		{entity.NodeTypeMirapAreaShipExtractor, func() nodes.NodeAdaptor { return &mirapareaship.Config{} }, nil},
+		{entity.NodeTypeMirapStayCalculation, func() nodes.NodeAdaptor { return &mirapstaycalc.Config{} }, nil},
+		{entity.NodeTypeMirapHoverDetail, func() nodes.NodeAdaptor { return &miraphoverdetail.Config{} }, nil},
+		{entity.NodeTypeMirapMMSIIntersection, func() nodes.NodeAdaptor { return mirapmmsiset.NewIntersectionConfig() }, nil},
+		{entity.NodeTypeMirapMMSIUnion, func() nodes.NodeAdaptor { return mirapmmsiset.NewUnionConfig() }, nil},
+		{entity.NodeTypeMirapMMSIDifference, func() nodes.NodeAdaptor { return mirapmmsiset.NewDifferenceConfig() }, nil},
+		{entity.NodeTypeLoop, func() nodes.NodeAdaptor { return &loop.Config{} }, nil},
+		{entity.NodeTypeKnowledgeIndexer, func() nodes.NodeAdaptor { return &knowledge.IndexerConfig{} }, nil},
+		{entity.NodeTypeKnowledgeRetriever, func() nodes.NodeAdaptor { return &knowledge.RetrieveConfig{} }, nil},
+		{entity.NodeTypeKnowledgeDeleter, func() nodes.NodeAdaptor { return &knowledge.DeleterConfig{} }, nil},
+		{entity.NodeTypeDatabaseInsert, func() nodes.NodeAdaptor { return &database.InsertConfig{} }, nil},
+		{entity.NodeTypeDatabaseUpdate, func() nodes.NodeAdaptor { return &database.UpdateConfig{} }, nil},
+		{entity.NodeTypeDatabaseQuery, func() nodes.NodeAdaptor { return &database.QueryConfig{} }, nil},
+		{entity.NodeTypeDatabaseDelete, func() nodes.NodeAdaptor { return &database.DeleteConfig{} }, nil},
+		{entity.NodeTypeDatabaseCustomSQL, func() nodes.NodeAdaptor { return &database.CustomSQLConfig{} }, nil},
+		{entity.NodeTypeLLM, func() nodes.NodeAdaptor { return &llm.Config{} }, nil},
+		{entity.NodeTypeCreateConversation, func() nodes.NodeAdaptor { return &conversation.CreateConversationConfig{} }, nil},
+		{entity.NodeTypeConversationUpdate, func() nodes.NodeAdaptor { return &conversation.UpdateConversationConfig{} }, nil},
+		{entity.NodeTypeConversationDelete, func() nodes.NodeAdaptor { return &conversation.DeleteConversationConfig{} }, nil},
+		{entity.NodeTypeConversationList, func() nodes.NodeAdaptor { return &conversation.ConversationListConfig{} }, nil},
+		{entity.NodeTypeConversationHistory, func() nodes.NodeAdaptor { return &conversation.ConversationHistoryConfig{} }, nil},
+		{entity.NodeTypeClearConversationHistory, func() nodes.NodeAdaptor { return &conversation.ClearConversationHistoryConfig{} }, nil},
+		{entity.NodeTypeMessageList, func() nodes.NodeAdaptor { return &conversation.MessageListConfig{} }, nil},
+		{entity.NodeTypeCreateMessage, func() nodes.NodeAdaptor { return &conversation.CreateMessageConfig{} }, nil},
+		{entity.NodeTypeEditMessage, func() nodes.NodeAdaptor { return &conversation.EditMessageConfig{} }, nil},
+		{entity.NodeTypeDeleteMessage, func() nodes.NodeAdaptor { return &conversation.DeleteMessageConfig{} }, nil},
+	}
+}
+
+func registerNodeAdaptors(set map[entity.NodeType]bool) {
+	for _, e := range allNodeAdaptorEntries() {
+		if set != nil && !set[e.nodeType] {
+			continue
+		}
+		if e.node != nil {
+			nodes.RegisterNodeAdaptor(e.nodeType, e.node)
+		}
+		if e.branch != nil {
+			nodes.RegisterBranchAdaptor(e.nodeType, e.branch)
+		}
+	}
 }

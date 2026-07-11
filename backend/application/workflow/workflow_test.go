@@ -17,6 +17,7 @@
 package workflow
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -25,7 +26,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/coze-dev/coze-studio/backend/api/model/workflow"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
+	domainWorkflowService "github.com/coze-dev/coze-studio/backend/domain/workflow/service"
 	"github.com/coze-dev/coze-studio/backend/pkg/lang/ptr"
 )
 
@@ -156,4 +159,68 @@ func TestToVariable(t *testing.T) {
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
+}
+
+func TestGetNodeTemplateListMirapNodeSet(t *testing.T) {
+	oldSVC := SVC
+	SVC = &ApplicationService{
+		DomainSVC: domainWorkflowService.NewWorkflowService(nil),
+	}
+	SVC.SetNodeSet(entity.MirapNodeSet)
+	defer func() {
+		SVC = oldSVC
+	}()
+
+	t.Run("filters requested node types to the Mirap whitelist", func(t *testing.T) {
+		resp, err := SVC.GetNodeTemplateList(context.Background(), &workflow.NodeTemplateListRequest{
+			NodeTypes: []string{
+				entity.NodeTypeLLM.IDStr(),
+				entity.NodeTypePlugin.IDStr(),
+				entity.NodeTypeJsonSerialization.IDStr(),
+				entity.NodeTypeJsonDeserialization.IDStr(),
+				entity.NodeTypeMirapAreaShipExtractor.IDStr(),
+			},
+		})
+		require.NoError(t, err)
+
+		got := make(map[string]bool)
+		for _, tpl := range resp.GetData().GetTemplateList() {
+			got[tpl.GetID()] = true
+		}
+
+		assert.False(t, got[entity.NodeTypeLLM.IDStr()])
+		assert.False(t, got[entity.NodeTypePlugin.IDStr()])
+		assert.True(t, got[entity.NodeTypeJsonSerialization.IDStr()])
+		assert.True(t, got[entity.NodeTypeJsonDeserialization.IDStr()])
+		assert.True(t, got[entity.NodeTypeMirapAreaShipExtractor.IDStr()])
+	})
+
+	t.Run("does not leak all nodes when requested types are all outside the whitelist", func(t *testing.T) {
+		resp, err := SVC.GetNodeTemplateList(context.Background(), &workflow.NodeTemplateListRequest{
+			NodeTypes: []string{
+				entity.NodeTypeLLM.IDStr(),
+				entity.NodeTypePlugin.IDStr(),
+			},
+		})
+		require.NoError(t, err)
+		assert.Empty(t, resp.GetData().GetTemplateList())
+		assert.Empty(t, resp.GetData().GetCateList())
+	})
+
+	t.Run("empty requested node types returns the Mirap whitelist", func(t *testing.T) {
+		resp, err := SVC.GetNodeTemplateList(context.Background(), &workflow.NodeTemplateListRequest{})
+		require.NoError(t, err)
+
+		got := make(map[string]bool)
+		for _, tpl := range resp.GetData().GetTemplateList() {
+			got[tpl.GetID()] = true
+		}
+
+		assert.Len(t, got, len(entity.MirapNodeSet))
+		assert.True(t, got[entity.NodeTypeEntry.IDStr()])
+		assert.True(t, got[entity.NodeTypeJsonDeserialization.IDStr()])
+		assert.True(t, got[entity.NodeTypeMirapMMSIDifference.IDStr()])
+		assert.False(t, got[entity.NodeTypeLLM.IDStr()])
+		assert.False(t, got[entity.NodeTypePlugin.IDStr()])
+	})
 }

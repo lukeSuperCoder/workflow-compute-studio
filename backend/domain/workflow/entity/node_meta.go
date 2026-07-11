@@ -1094,6 +1094,43 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 // PluginNodeMetas holds metadata for specific plugin API entity.
 var PluginNodeMetas []*PluginNodeMeta
 
+// MirapNodeSet is the whitelist of node types enabled in Mirap Workflow Studio.
+// It restricts node adaptor registration and the node_type catalog API so that
+// only basic flow-control nodes and Mirap custom nodes are available.
+// SubWorkflow is included for the catalog; its adaptor is wired specially in
+// NodeToNodeSchema, not via the generic adaptor registry.
+var MirapNodeSet = map[NodeType]bool{
+	NodeTypeEntry:                      true, // Start
+	NodeTypeExit:                       true, // End
+	NodeTypeInputReceiver:              true, // Input
+	NodeTypeOutputEmitter:              true, // Output
+	NodeTypeSelector:                   true, // If
+	NodeTypeLoop:                       true,
+	NodeTypeBatch:                      true,
+	NodeTypeBreak:                      true,
+	NodeTypeContinue:                   true,
+	NodeTypeVariableAssigner:           true, // Variable Assign
+	NodeTypeVariableAssignerWithinLoop: true, // loop-scoped variable assign
+	NodeTypeVariableAggregator:         true, // Variable Merge
+	NodeTypeJsonSerialization:          true, // JSON Stringify
+	NodeTypeJsonDeserialization:        true, // JSON Parse
+	NodeTypeTextProcessor:              true,
+	NodeTypeHTTPRequester:              true,
+	NodeTypeSubWorkflow:                true,
+	NodeTypeComment:                    true,
+	NodeTypeMirapAreaShipExtractor:     true,
+	NodeTypeMirapStayCalculation:       true,
+	NodeTypeMirapHoverDetail:           true,
+	NodeTypeMirapMMSIIntersection:      true,
+	NodeTypeMirapMMSIUnion:             true,
+	NodeTypeMirapMMSIDifference:        true,
+}
+
+// IsMirapNode reports whether the given node type belongs to the Mirap whitelist.
+func IsMirapNode(nt NodeType) bool {
+	return MirapNodeSet[nt]
+}
+
 // PluginCategoryMetas holds metadata for plugin category entity.
 var PluginCategoryMetas []*PluginCategoryMeta
 

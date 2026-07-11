@@ -16,64 +16,62 @@
 
 import { StandardNodeType } from '@coze-workflow/base';
 
-// All nodes are available by default and can be customized.
-export const getEnabledNodeTypes = (_params: {
+// MIRAP_BASE_NODE_TYPES is the always-on whitelist for Mirap Workflow Studio.
+// It mirrors backend entity.MirapNodeSet and restricts the node panel to basic
+// flow-control nodes plus the six Mirap custom nodes.
+export const MIRAP_BASE_NODE_TYPES: StandardNodeType[] = [
+  StandardNodeType.Start,
+  StandardNodeType.End,
+  StandardNodeType.Input,
+  StandardNodeType.Output,
+  StandardNodeType.If,
+  StandardNodeType.Loop,
+  StandardNodeType.Batch,
+  StandardNodeType.Break,
+  StandardNodeType.Continue,
+  StandardNodeType.VariableAssign,
+  StandardNodeType.SetVariable,
+  StandardNodeType.VariableMerge,
+  StandardNodeType.JsonStringify,
+  StandardNodeType.JsonParser,
+  StandardNodeType.Text,
+  StandardNodeType.Http,
+  StandardNodeType.SubWorkflow,
+  StandardNodeType.Comment,
+  StandardNodeType.MirapAreaShipExtractor,
+  StandardNodeType.MirapStayCalculation,
+  StandardNodeType.MirapHoverDetail,
+  StandardNodeType.MirapMMSIIntersection,
+  StandardNodeType.MirapMMSIUnion,
+  StandardNodeType.MirapMMSIDifference,
+];
+
+// getEnabledNodeTypes returns the whitelisted node types available in the node
+// panel. Break / Continue / SetVariable are loop-scoped and only surface when a
+// loop/batch container is selected.
+export const getEnabledNodeTypes = (params: {
   loopSelected: boolean;
   isProject: boolean;
   isSupportImageflowNodes: boolean;
   isSceneFlow: boolean;
   isBindDouyin: boolean;
 }) => {
-  const { loopSelected } = _params;
-  const nodesMap = {
-    [StandardNodeType.LLM]: true,
-    [StandardNodeType.Api]: true,
-    [StandardNodeType.Code]: true,
-    [StandardNodeType.Dataset]: true,
-    [StandardNodeType.If]: true,
-    [StandardNodeType.SubWorkflow]: true,
-    [StandardNodeType.Database]: true,
-    [StandardNodeType.Output]: true,
-    [StandardNodeType.Text]: true,
-    [StandardNodeType.Question]: true,
-    [StandardNodeType.Break]: loopSelected,
-    [StandardNodeType.SetVariable]: loopSelected,
-    [StandardNodeType.Continue]: loopSelected,
-    [StandardNodeType.Loop]: true,
-    [StandardNodeType.Intent]: true,
-    [StandardNodeType.DatasetWrite]: true,
-    [StandardNodeType.Batch]: true,
-    [StandardNodeType.Input]: true,
-    [StandardNodeType.Comment]: true,
-    [StandardNodeType.VariableMerge]: true,
-    [StandardNodeType.QueryMessageList]: true,
-    [StandardNodeType.ClearContext]: true,
-    [StandardNodeType.CreateConversation]: true,
-    [StandardNodeType.VariableAssign]: true,
-    [StandardNodeType.Http]: true,
-    [StandardNodeType.MirapAreaShipExtractor]: true,
-    [StandardNodeType.MirapStayCalculation]: true,
-    [StandardNodeType.MirapMMSIIntersection]: true,
-    [StandardNodeType.MirapMMSIUnion]: true,
-    [StandardNodeType.MirapMMSIDifference]: true,
-    [StandardNodeType.MirapHoverDetail]: true,
-    [StandardNodeType.DatabaseUpdate]: true,
-    [StandardNodeType.DatabaseQuery]: true,
-    [StandardNodeType.DatabaseDelete]: true,
-    [StandardNodeType.DatabaseCreate]: true,
-    // [StandardNodeType.JsonParser]: true,
-    [StandardNodeType.JsonStringify]: true,
-    [StandardNodeType.UpdateConversation]: true,
-    [StandardNodeType.DeleteConversation]: true,
-    [StandardNodeType.QueryConversationList]: true,
-    [StandardNodeType.QueryConversationHistory]: true,
-    [StandardNodeType.CreateMessage]: true,
-    [StandardNodeType.UpdateMessage]: true,
-    [StandardNodeType.DeleteMessage]: true,
-  };
-  const enabledNodeTypes: StandardNodeType[] = Object.keys(nodesMap)
-    .filter(key => nodesMap[key])
-    .map(key => key as StandardNodeType);
+  const { loopSelected } = params;
 
-  return enabledNodeTypes;
+  const loopScoped: StandardNodeType[] = loopSelected
+    ? [
+        StandardNodeType.Break,
+        StandardNodeType.Continue,
+        StandardNodeType.SetVariable,
+      ]
+    : [];
+
+  const alwaysOn = MIRAP_BASE_NODE_TYPES.filter(
+    type =>
+      type !== StandardNodeType.Break &&
+      type !== StandardNodeType.Continue &&
+      type !== StandardNodeType.SetVariable,
+  );
+
+  return [...alwaysOn, ...loopScoped];
 };

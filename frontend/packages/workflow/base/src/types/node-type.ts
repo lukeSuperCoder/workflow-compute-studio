@@ -152,12 +152,14 @@ export const NODE_ORDER = {
   [StandardNodeType.TriggerUpsert]: 26,
   [StandardNodeType.TriggerRead]: 27,
   [StandardNodeType.TriggerDelete]: 28,
-  [StandardNodeType.MirapAreaShipExtractor]: 29,
-  [StandardNodeType.MirapMMSIIntersection]: 30,
-  [StandardNodeType.MirapMMSIUnion]: 31,
-  [StandardNodeType.MirapMMSIDifference]: 32,
-  [StandardNodeType.MirapStayCalculation]: 33,
-  [StandardNodeType.MirapHoverDetail]: 34,
+  [StandardNodeType.JsonStringify]: 29,
+  [StandardNodeType.JsonParser]: 30,
+  [StandardNodeType.MirapAreaShipExtractor]: 31,
+  [StandardNodeType.MirapMMSIIntersection]: 32,
+  [StandardNodeType.MirapMMSIUnion]: 33,
+  [StandardNodeType.MirapMMSIDifference]: 34,
+  [StandardNodeType.MirapStayCalculation]: 35,
+  [StandardNodeType.MirapHoverDetail]: 36,
 };
 
 /** session class node */

@@ -39,6 +39,7 @@ import (
 	workflowImpl "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/impl"
 	searchentity "github.com/coze-dev/coze-studio/backend/domain/search/entity"
 	searchsvc "github.com/coze-dev/coze-studio/backend/domain/search/service"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
 	"github.com/coze-dev/coze-studio/backend/infra/cache"
 	redisImpl "github.com/coze-dev/coze-studio/backend/infra/cache/impl/redis"
 	"github.com/coze-dev/coze-studio/backend/infra/checkpoint"
@@ -109,6 +110,7 @@ func Init(ctx context.Context) (*Dependencies, error) {
 		DomainNotifier:     eventBus,
 		Tos:                oss,
 		CPStore:            checkpoint.NewRedisStore(cacheCli),
+		NodeSet:            entity.MirapNodeSet,
 	})
 	if err != nil {
 		return nil, err

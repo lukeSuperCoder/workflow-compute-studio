@@ -36,6 +36,7 @@ import (
 	search "github.com/coze-dev/coze-studio/backend/domain/search/service"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/config"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
 	wrapPlugin "github.com/coze-dev/coze-studio/backend/domain/workflow/plugin"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/service"
 	"github.com/coze-dev/coze-studio/backend/infra/cache"
@@ -59,6 +60,11 @@ type ServiceComponents struct {
 	CPStore                  compose.CheckPointStore
 	CodeRunner               coderunner.Runner
 	WorkflowBuildInChatModel modelbuilder.BaseChatModel
+
+	// NodeSet, when non-nil, restricts node adaptor registration and the
+	// node_type catalog to the whitelisted node types. Used by the
+	// workflow-only (Mirap) backend via entity.MirapNodeSet.
+	NodeSet map[entity.NodeType]bool
 }
 
 func initWorkflowConfig() (workflow.WorkflowConfig, error) {
@@ -84,7 +90,12 @@ func initWorkflowConfig() (workflow.WorkflowConfig, error) {
 }
 
 func InitService(_ context.Context, components *ServiceComponents) (*ApplicationService, error) {
-	service.RegisterAllNodeAdaptors()
+	if components.NodeSet == nil {
+		service.RegisterAllNodeAdaptors()
+	} else {
+		service.RegisterNodeAdaptorsForSet(components.NodeSet)
+		SVC.SetNodeSet(components.NodeSet)
+	}
 
 	cfg, err := initWorkflowConfig()
 	if err != nil {

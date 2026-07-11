@@ -54,6 +54,7 @@ func Register(r *server.Hertz, st storage.Storage) {
 	workflowAPI.POST("/workflow_detail", coze.GetWorkflowDetail)
 	workflowAPI.POST("/workflow_detail_info", coze.GetWorkflowDetailInfo)
 	workflowAPI.POST("/node_type", coze.QueryWorkflowNodeTypes)
+	workflowAPI.POST("/node_template_list", coze.NodeTemplateList)
 	workflowAPI.POST("/validate_tree", coze.ValidateTree)
 	workflowAPI.POST("/workflow_references", coze.GetWorkflowReferences)
 	workflowAPI.POST("/released_workflows", coze.GetReleasedWorkflows)

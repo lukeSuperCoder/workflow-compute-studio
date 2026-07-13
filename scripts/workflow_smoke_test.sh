@@ -1,4 +1,20 @@
 #!/usr/bin/env bash
+#
+# Copyright 2025 coze-dev Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,10 +25,14 @@ MYSQL_SERVICE="${MYSQL_SERVICE:-workflow-mysql}"
 MYSQL_USER="${WORKFLOW_MYSQL_USER:-mirap}"
 MYSQL_PASSWORD="${WORKFLOW_MYSQL_PASSWORD:-mirap123}"
 MYSQL_DATABASE="${WORKFLOW_MYSQL_DATABASE:-mirap_workflow}"
-SMOKE_USER_ID="${WORKFLOW_AUTH_BYPASS_USER_ID:-10001}"
+SMOKE_USER_ID="${WORKFLOW_SMOKE_USER_ID:-10001}"
 SMOKE_SPACE_ID="${WORKFLOW_SMOKE_SPACE_ID:-999999}"
+SMOKE_EMAIL="workflow-smoke@mirap.local"
+SMOKE_PASSWORD="workflow-smoke-password"
+SMOKE_PASSWORD_HASH='$argon2id$v=19$m=65536,t=3,p=4$d29ya2Zsb3ctc21va2UhIQ$gjqATloExlF4zrrYgc6M+V59NbYDDMo7X5G2Sa9r7sA'
 RUN_ID="$(date +%Y%m%d%H%M%S)"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/workflow-smoke.XXXXXX")"
+COOKIE_JAR="$TMP_DIR/cookies.txt"
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -32,6 +52,7 @@ post_json() {
   local path="$1"
   local body_file="$2"
   curl -fsS -X POST "$BASE_URL$path" \
+    -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
     -H 'Content-Type: application/json' \
     --data-binary "@$body_file"
 }
@@ -62,6 +83,7 @@ file_upload_check() {
   printf 'workflow smoke upload %s\n' "$RUN_ID" >"$TMP_DIR/upload.txt"
 
   curl -fsS -X POST "$BASE_URL/api/files/upload" \
+    -b "$COOKIE_JAR" -c "$COOKIE_JAR" \
     -F "file=@$TMP_DIR/upload.txt;type=text/plain" \
     >"$TMP_DIR/upload-response.json"
 
@@ -76,14 +98,14 @@ file_upload_check() {
     return 1
   fi
 
-  curl -fsS "$BASE_URL$file_url" >"$TMP_DIR/upload-read.txt"
+  curl -fsS -b "$COOKIE_JAR" -c "$COOKIE_JAR" "$BASE_URL$file_url" >"$TMP_DIR/upload-read.txt"
   if ! cmp -s "$TMP_DIR/upload.txt" "$TMP_DIR/upload-read.txt"; then
     log "uploaded file content mismatch"
     return 1
   fi
 
   local forbidden_status
-  forbidden_status="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/api/files/uploads/10002/not-owned.txt")"
+  forbidden_status="$(curl -sS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -o /dev/null -w '%{http_code}' "$BASE_URL/api/files/uploads/10002/not-owned.txt")"
   if [[ "$forbidden_status" != "403" ]]; then
     log "expected private file owner check to return 403, got $forbidden_status"
     return 1
@@ -91,21 +113,21 @@ file_upload_check() {
 
   log "checking local file delete access"
   local delete_response
-  delete_response="$(curl -fsS -X DELETE "$BASE_URL/api/files/$file_key")"
+  delete_response="$(curl -fsS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X DELETE "$BASE_URL/api/files/$file_key")"
   if ! echo "$delete_response" | jq -e '.status == "deleted"' >/dev/null; then
     log "delete did not return deleted status: $delete_response"
     return 1
   fi
 
   local after_delete_status
-  after_delete_status="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/api/files/$file_key")"
+  after_delete_status="$(curl -sS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -o /dev/null -w '%{http_code}' "$BASE_URL/api/files/$file_key")"
   if [[ "$after_delete_status" != "404" ]]; then
     log "expected 404 after delete, got $after_delete_status"
     return 1
   fi
 
   local delete_forbidden_status
-  delete_forbidden_status="$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/api/files/uploads/10002/not-owned.txt")"
+  delete_forbidden_status="$(curl -sS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/api/files/uploads/10002/not-owned.txt")"
   if [[ "$delete_forbidden_status" != "403" ]]; then
     log "expected delete cross-owner check to return 403, got $delete_forbidden_status"
     return 1
@@ -116,8 +138,8 @@ seed_smoke_identity() {
   log "seeding smoke user/space in isolated database"
   mysql_exec <<SQL
 INSERT INTO user (id,name,unique_name,email,password,description,icon_uri,user_verified,locale,session_key,created_at,updated_at)
-VALUES (${SMOKE_USER_ID},'Workflow Smoke','workflow_smoke','workflow-smoke@mirap.local','','','default_icon/user_default_icon.png',1,'zh-CN','',UNIX_TIMESTAMP(NOW(3))*1000,UNIX_TIMESTAMP(NOW(3))*1000)
-ON DUPLICATE KEY UPDATE name=VALUES(name), updated_at=VALUES(updated_at);
+VALUES (${SMOKE_USER_ID},'Workflow Smoke','workflow_smoke','${SMOKE_EMAIL}','${SMOKE_PASSWORD_HASH}','','default_icon/user_default_icon.png',1,'zh-CN','',UNIX_TIMESTAMP(NOW(3))*1000,UNIX_TIMESTAMP(NOW(3))*1000)
+ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), password=VALUES(password), session_key='', updated_at=VALUES(updated_at);
 
 INSERT INTO space (id,owner_id,name,description,icon_uri,creator_id,created_at,updated_at)
 VALUES (${SMOKE_SPACE_ID},${SMOKE_USER_ID},'Workflow Smoke Space','workflow-only smoke space','default_icon/team_default_icon.png',${SMOKE_USER_ID},UNIX_TIMESTAMP(NOW(3))*1000,UNIX_TIMESTAMP(NOW(3))*1000)
@@ -127,6 +149,42 @@ INSERT INTO space_user (space_id,user_id,role_type,created_at,updated_at)
 VALUES (${SMOKE_SPACE_ID},${SMOKE_USER_ID},1,UNIX_TIMESTAMP(NOW(3))*1000,UNIX_TIMESTAMP(NOW(3))*1000)
 ON DUPLICATE KEY UPDATE role_type=VALUES(role_type), updated_at=VALUES(updated_at);
 SQL
+}
+
+auth_boundary_check() {
+  log "checking unauthenticated route boundaries"
+  local workflow_status register_status reset_status
+  workflow_status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$BASE_URL/api/workflow_api/workflow_list" -H 'Content-Type: application/json' --data '{}')"
+  register_status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$BASE_URL/api/auth/register" -H 'Content-Type: application/json' --data '{}')"
+  reset_status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$BASE_URL/api/auth/reset-password" -H 'Content-Type: application/json' --data '{}')"
+  [[ "$workflow_status" == "401" ]] || { log "expected unauthenticated workflow request to return 401, got $workflow_status"; return 1; }
+  [[ "$register_status" == "404" ]] || { log "expected registration route to return 404, got $register_status"; return 1; }
+  [[ "$reset_status" == "404" ]] || { log "expected password reset route to return 404, got $reset_status"; return 1; }
+}
+
+login_check() {
+  log "logging in with the smoke account"
+  jq -n --arg email "$SMOKE_EMAIL" --arg password "$SMOKE_PASSWORD" \
+    '{email:$email,password:$password}' >"$TMP_DIR/login.json"
+  post_json "/api/auth/login" "$TMP_DIR/login.json" >"$TMP_DIR/login-response.json"
+  assert_code_zero "$TMP_DIR/login-response.json" "login"
+  jq -e --arg user_id "$SMOKE_USER_ID" --arg space_id "$SMOKE_SPACE_ID" \
+    '.data.user_id == $user_id and .data.space_id == $space_id' \
+    "$TMP_DIR/login-response.json" >/dev/null
+
+  curl -fsS -b "$COOKIE_JAR" -c "$COOKIE_JAR" "$BASE_URL/api/auth/session" \
+    >"$TMP_DIR/session-response.json"
+  assert_code_zero "$TMP_DIR/session-response.json" "session restore"
+}
+
+logout_check() {
+  log "logging out and checking the session is invalidated"
+  curl -fsS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X POST "$BASE_URL/api/auth/logout" \
+    >"$TMP_DIR/logout-response.json"
+  assert_code_zero "$TMP_DIR/logout-response.json" "logout"
+  local session_status
+  session_status="$(curl -sS -b "$COOKIE_JAR" -c "$COOKIE_JAR" -o /dev/null -w '%{http_code}' "$BASE_URL/api/auth/session")"
+  [[ "$session_status" == "401" ]] || { log "expected logged-out session to return 401, got $session_status"; return 1; }
 }
 
 health_check() {
@@ -282,7 +340,7 @@ run_workflow() {
 
   local attempt
   for attempt in {1..20}; do
-    curl -fsS "$BASE_URL/api/workflow_api/get_process?workflow_id=${workflow_id}&space_id=${SMOKE_SPACE_ID}&execute_id=${execute_id}" \
+    curl -fsS -b "$COOKIE_JAR" -c "$COOKIE_JAR" "$BASE_URL/api/workflow_api/get_process?workflow_id=${workflow_id}&space_id=${SMOKE_SPACE_ID}&execute_id=${execute_id}" \
       >"$TMP_DIR/process-response.json"
     assert_code_zero "$TMP_DIR/process-response.json" "get_process"
     if jq -e '.data.executeStatus == 2 and (.data.nodeResults | length >= 2)' "$TMP_DIR/process-response.json" >/dev/null; then
@@ -302,7 +360,9 @@ main() {
   cd "$ROOT_DIR"
 
   health_check
+  auth_boundary_check
   seed_smoke_identity
+  login_check
 
   log "checking workflow_list"
   jq -n --arg space_id "$SMOKE_SPACE_ID" '{space_id:$space_id,page:1,size:10}' >"$TMP_DIR/list.json"
@@ -338,6 +398,7 @@ main() {
   save_schema "$min_workflow_id" "$min_commit_id" "minimal_run_smoke_${RUN_ID}" "Minimal execution smoke" \
     "$TMP_DIR/minimal.canvas.json" "$TMP_DIR/min-save-response.json"
   run_workflow "$min_workflow_id"
+  logout_check
 
   log "smoke test passed"
 }

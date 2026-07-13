@@ -18,6 +18,7 @@ package middleware
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -49,7 +50,13 @@ func SessionAuthMW() app.HandlerFunc {
 			return
 		}
 
-		if noNeedSessionCheckPath[string(ctx.GetRequest().URI().Path())] || noNeedSessionCheckPrefix(ctx) {
+		path := string(ctx.GetRequest().URI().Path())
+		if os.Getenv("APP_ENV") == "workflow" && isRemovedWorkflowAuthPath(path) {
+			ctx.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		if noNeedSessionCheckPath[path] || noNeedSessionCheckPrefix(ctx) {
 			ctx.Next(c)
 			return
 		}
@@ -80,6 +87,10 @@ func SessionAuthMW() app.HandlerFunc {
 
 		ctx.Next(c)
 	}
+}
+
+func isRemovedWorkflowAuthPath(path string) bool {
+	return path == "/api/auth/register" || path == "/api/auth/reset-password"
 }
 
 func noNeedSessionCheckPrefix(ctx *app.RequestContext) bool {

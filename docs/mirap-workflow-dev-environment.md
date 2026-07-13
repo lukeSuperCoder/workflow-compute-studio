@@ -22,7 +22,7 @@ make build
 - `workflow-migrate`：执行 workflow-only schema/migration。
 - `dev-server`：启动 workflow-only 后端，默认监听 `:8889`。
 - `dev-web`：启动 workflow 前端，默认监听 `:5174`。
-- `workflow-smoke`：验证 health、文件上传/读取/删除、工作流创建/保存/重开/发布/执行。
+- `workflow-smoke`：通过真实邮箱密码登录后，验证会话、退出、文件上传/读取/删除、工作流创建/保存/重开/发布/执行。
 - `test`：运行 workflow Go 测试。
 - `build`：构建 `bin/workflow-server`。
 
@@ -34,6 +34,12 @@ make build
 | Redis | `mirap-workflow-redis` | `6380` | `docker/data-workflow/redis` |
 | 后端 | 本机进程 | `8889` | `storage` |
 | 前端 | 本机进程 | `5174` | 无 |
+
+## 账号登录与退出
+
+访问 `http://localhost:5174` 后，使用旧系统中已有账号的邮箱和密码登录。后端验证成功后会写入仅供服务端读取的 `session_key` Cookie，前端刷新页面时会通过 `/api/auth/session` 恢复登录状态；右上角 `Sign out` 会同时注销服务端会话并清理本地展示信息。
+
+workflow-only 界面只支持已有账号登录与退出，不提供注册、找回密码或重置密码入口。`WORKFLOW_AUTH_BYPASS_USER_ID` 默认必须留空，仅允许在明确的本地诊断场景临时设置；`make workflow-smoke` 会自行创建隔离测试账号并走真实登录流程，不依赖认证绕过。
 
 ## 备份与恢复
 

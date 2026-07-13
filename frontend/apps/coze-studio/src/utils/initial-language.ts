@@ -20,3 +20,26 @@ export const getInitialLanguage = (
   storage: Pick<Storage, 'getItem'>,
 ): SupportedLanguage =>
   storage.getItem('i18next') === 'en' ? 'en' : 'zh-CN';
+
+export const syncDocumentLanguage = (
+  language: SupportedLanguage,
+  documentElement: Pick<HTMLElement, 'lang'>,
+): void => {
+  documentElement.lang = language;
+};
+
+interface LanguageChangeSource {
+  on: (
+    event: 'languageChanged',
+    listener: (language: SupportedLanguage) => void,
+  ) => void;
+}
+
+export const watchDocumentLanguage = (
+  source: LanguageChangeSource,
+  documentElement: Pick<HTMLElement, 'lang'>,
+): void => {
+  source.on('languageChanged', language => {
+    syncDocumentLanguage(language, documentElement);
+  });
+};

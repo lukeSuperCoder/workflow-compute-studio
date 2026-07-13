@@ -16,6 +16,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import * as initialLanguage from '../initial-language';
 import { getInitialLanguage } from '../initial-language';
 
 describe('getInitialLanguage', () => {
@@ -26,5 +27,41 @@ describe('getInitialLanguage', () => {
   it('preserves saved language preferences', () => {
     expect(getInitialLanguage({ getItem: () => 'en' })).toBe('en');
     expect(getInitialLanguage({ getItem: () => 'zh-CN' })).toBe('zh-CN');
+  });
+});
+
+describe('document language synchronization', () => {
+  it('sets the document language to English', () => {
+    const documentElement = { lang: 'zh-CN' };
+
+    initialLanguage.syncDocumentLanguage('en', documentElement);
+
+    expect(documentElement.lang).toBe('en');
+  });
+
+  it('sets the document language to Simplified Chinese', () => {
+    const documentElement = { lang: 'en' };
+
+    initialLanguage.syncDocumentLanguage('zh-CN', documentElement);
+
+    expect(documentElement.lang).toBe('zh-CN');
+  });
+
+  it('updates the document after a later language change', () => {
+    const documentElement = { lang: 'zh-CN' };
+    let listener: ((language: 'en' | 'zh-CN') => void) | undefined;
+    const source = {
+      on: (
+        _event: 'languageChanged',
+        nextListener: (language: 'en' | 'zh-CN') => void,
+      ) => {
+        listener = nextListener;
+      },
+    };
+
+    initialLanguage.watchDocumentLanguage(source, documentElement);
+    listener?.('en');
+
+    expect(documentElement.lang).toBe('en');
   });
 });

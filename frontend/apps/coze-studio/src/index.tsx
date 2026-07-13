@@ -15,14 +15,18 @@
  */
 
 import { createRoot } from 'react-dom/client';
-import { initI18nInstance } from '@coze-arch/i18n/raw';
+import { I18n, initI18nInstance } from '@coze-arch/i18n/raw';
 import { dynamicImportMdBoxStyle } from '@coze-arch/bot-md-box-adapter/style';
 import { pullFeatureFlags, type FEATURE_FLAGS } from '@coze-arch/bot-flags';
 
 import { App } from './app';
 import './global.less';
 import './index.less';
-import { getInitialLanguage } from './utils/initial-language';
+import {
+  getInitialLanguage,
+  syncDocumentLanguage,
+  watchDocumentLanguage,
+} from './utils/initial-language';
 
 const initFlags = () => {
   pullFeatureFlags({
@@ -35,8 +39,11 @@ const main = () => {
   // Initialize the value of the function switch
   initFlags();
   // Initialize i18n
+  const initialLanguage = getInitialLanguage(localStorage);
+  syncDocumentLanguage(initialLanguage, document.documentElement);
+  watchDocumentLanguage(I18n.i18nInstance.instance, document.documentElement);
   initI18nInstance({
-    lng: getInitialLanguage(localStorage),
+    lng: initialLanguage,
   });
   // Import mdbox styles dynamically
   dynamicImportMdBoxStyle();

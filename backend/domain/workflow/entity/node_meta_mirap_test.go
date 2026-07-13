@@ -38,6 +38,51 @@ func TestMirapNodeSetBasics(t *testing.T) {
 	}
 }
 
+func TestMirapCustomNodeMetadata(t *testing.T) {
+	tests := []struct {
+		nodeType NodeType
+		id       int64
+		category string
+	}{
+		{NodeTypeMirapAreaShipExtractor, 1001, "operator"},
+		{NodeTypeMirapStayCalculation, 1002, "operator"},
+		{NodeTypeMirapHoverDetail, 1003, "operator"},
+		{NodeTypeMirapMMSIIntersection, 2001, "operator_logic"},
+		{NodeTypeMirapMMSIUnion, 2002, "operator_logic"},
+		{NodeTypeMirapMMSIDifference, 2003, "operator_logic"},
+	}
+	seen := map[int64]NodeType{}
+	for _, tt := range tests {
+		meta := NodeMetaByNodeType(tt.nodeType)
+		if meta == nil {
+			t.Fatalf("missing metadata for %q", tt.nodeType)
+		}
+		if meta.ID != tt.id {
+			t.Errorf("%s ID = %d, want %d", tt.nodeType, meta.ID, tt.id)
+		}
+		if meta.Category != tt.category {
+			t.Errorf("%s category = %q, want %q", tt.nodeType, meta.Category, tt.category)
+		}
+		if previous, ok := seen[meta.ID]; ok {
+			t.Fatalf("duplicate ID %d for %s and %s", meta.ID, previous, tt.nodeType)
+		}
+		seen[meta.ID] = tt.nodeType
+	}
+}
+
+func TestMirapCategoryOrder(t *testing.T) {
+	want := []Category{
+		{Key: "", Name: "", EnUSName: ""},
+		{Key: "operator", Name: "算子", EnUSName: "Operator"},
+		{Key: "operator_logic", Name: "算子业务逻辑", EnUSName: "Operator logic"},
+	}
+	for i, expected := range want {
+		if Categories[i] != expected {
+			t.Errorf("Categories[%d] = %#v, want %#v", i, Categories[i], expected)
+		}
+	}
+}
+
 func TestMirapNodeSetExcludes(t *testing.T) {
 	excluded := []NodeType{
 		NodeTypeLLM,

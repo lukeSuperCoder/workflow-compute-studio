@@ -209,6 +209,16 @@ var Categories = []Category{
 		EnUSName: "",
 	},
 	{
+		Key:      "operator",
+		Name:     "算子",
+		EnUSName: "Operator",
+	},
+	{
+		Key:      "operator_logic",
+		Name:     "算子业务逻辑",
+		EnUSName: "Operator logic",
+	},
+	{
 		Key:      "logic",
 		Name:     "业务逻辑",
 		EnUSName: "Logic",
@@ -257,11 +267,6 @@ var Categories = []Category{
 		Key:      "message",
 		Name:     "消息",
 		EnUSName: "Message",
-	},
-	{
-		Key:      "operator",
-		Name:     "算子",
-		EnUSName: "Operator",
 	},
 }
 
@@ -999,11 +1004,11 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSDescription: "Extract ships in a fixed area grid and date range.",
 	},
 	NodeTypeMirapMMSIIntersection: {
-		ID:           1002,
+		ID:           2001,
 		Key:          NodeTypeMirapMMSIIntersection,
 		DisplayKey:   "MirapMMSIIntersection",
 		Name:         "MMSI 交集",
-		Category:     "operator",
+		Category:     "operator_logic",
 		Desc:         "按 MMSI 对多个船舶结果集做交集运算",
 		Color:        "#3071F2",
 		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
@@ -1016,11 +1021,11 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSDescription: "Intersect ship result sets by MMSI.",
 	},
 	NodeTypeMirapMMSIUnion: {
-		ID:           1003,
+		ID:           2002,
 		Key:          NodeTypeMirapMMSIUnion,
 		DisplayKey:   "MirapMMSIUnion",
 		Name:         "MMSI 并集",
-		Category:     "operator",
+		Category:     "operator_logic",
 		Desc:         "按 MMSI 对多个船舶结果集做并集运算",
 		Color:        "#3071F2",
 		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
@@ -1033,11 +1038,11 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSDescription: "Union ship result sets by MMSI.",
 	},
 	NodeTypeMirapMMSIDifference: {
-		ID:           1004,
+		ID:           2003,
 		Key:          NodeTypeMirapMMSIDifference,
 		DisplayKey:   "MirapMMSIDifference",
 		Name:         "MMSI 差集",
-		Category:     "operator",
+		Category:     "operator_logic",
 		Desc:         "按 MMSI 从主船舶结果集中排除其他结果集",
 		Color:        "#3071F2",
 		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
@@ -1050,7 +1055,7 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSDescription: "Subtract ship result sets from a main result set by MMSI.",
 	},
 	NodeTypeMirapStayCalculation: {
-		ID:           1005,
+		ID:           1002,
 		Key:          NodeTypeMirapStayCalculation,
 		DisplayKey:   "MirapStayCalculation",
 		Name:         "低速事件筛选",
@@ -1067,7 +1072,7 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSDescription: "Filter ships with low-speed events by area grid and date range.",
 	},
 	NodeTypeMirapHoverDetail: {
-		ID:           1006,
+		ID:           1003,
 		Key:          NodeTypeMirapHoverDetail,
 		DisplayKey:   "MirapHoverDetail",
 		Name:         "折返事件明细",

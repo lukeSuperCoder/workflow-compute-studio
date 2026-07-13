@@ -59,12 +59,41 @@ describe('getEnabledNodeTypes', () => {
     expect(enabled).not.toContain(StandardNodeType.Code);
     expect(enabled).not.toContain(StandardNodeType.Dataset);
     expect(enabled).not.toContain(StandardNodeType.Database);
+    expect(enabled).not.toContain(StandardNodeType.VariableAssign);
+    expect(enabled).toEqual(
+      expect.arrayContaining([
+        StandardNodeType.Start,
+        StandardNodeType.End,
+        StandardNodeType.If,
+        StandardNodeType.Loop,
+        StandardNodeType.Input,
+        StandardNodeType.Output,
+        StandardNodeType.Http,
+        StandardNodeType.Comment,
+        StandardNodeType.MirapAreaShipExtractor,
+        StandardNodeType.MirapStayCalculation,
+        StandardNodeType.MirapHoverDetail,
+        StandardNodeType.MirapMMSIIntersection,
+        StandardNodeType.MirapMMSIUnion,
+        StandardNodeType.MirapMMSIDifference,
+      ]),
+    );
   });
 
   it('adds loop-scoped nodes only when a loop or batch container is selected', () => {
     const { getEnabledNodeTypes } = enabledNodeTypesModule;
     const enabled = getEnabledNodeTypes({ ...params, loopSelected: true });
 
+    expect(enabled).toContain(StandardNodeType.Break);
+    expect(enabled).toContain(StandardNodeType.Continue);
+    expect(enabled).toContain(StandardNodeType.SetVariable);
+  });
+
+  it('hides the data entry while preserving loop-scoped controls', () => {
+    const { getEnabledNodeTypes } = enabledNodeTypesModule;
+    const enabled = getEnabledNodeTypes({ ...params, loopSelected: true });
+
+    expect(enabled).not.toContain(StandardNodeType.VariableAssign);
     expect(enabled).toContain(StandardNodeType.Break);
     expect(enabled).toContain(StandardNodeType.Continue);
     expect(enabled).toContain(StandardNodeType.SetVariable);

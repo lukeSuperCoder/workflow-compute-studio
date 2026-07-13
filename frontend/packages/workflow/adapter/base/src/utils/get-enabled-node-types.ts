@@ -16,9 +16,9 @@
 
 import { StandardNodeType } from '@coze-workflow/base';
 
-// MIRAP_BASE_NODE_TYPES is the always-on whitelist for Mirap Workflow Studio.
-// It mirrors backend entity.MirapNodeSet and restricts the node panel to basic
-// flow-control nodes plus the six Mirap custom nodes.
+// MIRAP_BASE_NODE_TYPES is the add-panel whitelist for Mirap Workflow Studio.
+// It restricts the node panel to basic flow-control nodes plus the six Mirap
+// custom nodes.
 export const MIRAP_BASE_NODE_TYPES: StandardNodeType[] = [
   StandardNodeType.Start,
   StandardNodeType.End,
@@ -29,7 +29,6 @@ export const MIRAP_BASE_NODE_TYPES: StandardNodeType[] = [
   StandardNodeType.Batch,
   StandardNodeType.Break,
   StandardNodeType.Continue,
-  StandardNodeType.VariableAssign,
   StandardNodeType.SetVariable,
   StandardNodeType.VariableMerge,
   StandardNodeType.JsonStringify,

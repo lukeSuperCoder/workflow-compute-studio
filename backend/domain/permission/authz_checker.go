@@ -59,19 +59,9 @@ func (c *AuthzChecker) registerResourceQueryers() {
 
 	c.resourceQueryers[ResourceTypeWorkspace] = NewWorkspaceResourceQueryer()
 
-	c.resourceQueryers[ResourceTypeAgent] = NewAgentResourceQueryer()
-
-	c.resourceQueryers[ResourceTypePlugin] = NewPluginResourceQueryer()
-
 	c.resourceQueryers[ResourceTypeWorkflow] = NewWorkflowResourceQueryer()
 
-	c.resourceQueryers[ResourceTypeKnowledge] = NewKnowledgeResourceQueryer()
-	c.resourceQueryers[ResourceTypeKnowledgeSlice] = NewKnowledgeSliceResourceQueryer()
-	c.resourceQueryers[ResourceTypeKnowledgeDocument] = NewKnowledgeDocumentResourceQueryer()
-
 	c.resourceQueryers[ResourceTypeDatabase] = NewDatabaseResourceQueryer()
-
-	c.resourceQueryers[ResourceTypeApp] = NewAppResourceQueryer()
 
 }
 

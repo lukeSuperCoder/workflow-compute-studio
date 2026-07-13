@@ -34,7 +34,6 @@ import (
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/execute"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/qa"
 	schema2 "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/schema"
 	"github.com/coze-dev/coze-studio/backend/pkg/lang/ptr"
 	"github.com/coze-dev/coze-studio/backend/pkg/lang/ternary"
@@ -222,27 +221,6 @@ func (r *WorkflowRunner) Prepare(ctx context.Context) (
 		}
 
 		composeOpts = append(composeOpts, stateOpt)
-
-		if interruptEvent.EventType == entity.InterruptEventQuestion {
-			modifiedData, err := qa.AppendInterruptData(interruptEvent.InterruptData, resumeReq.ResumeData)
-			if err != nil {
-				return ctx, 0, nil, nil, fmt.Errorf("failed to append interrupt data: %w", err)
-			}
-			interruptEvent.InterruptData = modifiedData
-			if err = repo.UpdateFirstInterruptEvent(ctx, executeID, interruptEvent); err != nil {
-				return ctx, 0, nil, nil, fmt.Errorf("failed to update interrupt event: %w", err)
-			}
-		} else if interruptEvent.EventType == entity.InterruptEventLLM &&
-			interruptEvent.ToolInterruptEvent.EventType == entity.InterruptEventQuestion {
-			modifiedData, err := qa.AppendInterruptData(interruptEvent.ToolInterruptEvent.InterruptData, resumeReq.ResumeData)
-			if err != nil {
-				return ctx, 0, nil, nil, fmt.Errorf("failed to append interrupt data for LLM node: %w", err)
-			}
-			interruptEvent.ToolInterruptEvent.InterruptData = modifiedData
-			if err = repo.UpdateFirstInterruptEvent(ctx, executeID, interruptEvent); err != nil {
-				return ctx, 0, nil, nil, fmt.Errorf("failed to update interrupt event: %w", err)
-			}
-		}
 
 		success, currentStatus, err := repo.TryLockWorkflowExecution(ctx, executeID, resumeReq.EventID)
 		if err != nil {

@@ -33,17 +33,11 @@ import (
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/canvas/convert"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/batch"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/code"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/conversation"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/database"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/emitter"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/entry"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/exit"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/httprequester"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/intentdetector"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/json"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/knowledge"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/llm"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop"
 	_break "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/break"
 	_continue "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/continue"
@@ -51,8 +45,6 @@ import (
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/miraphoverdetail"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiset"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapstaycalc"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/plugin"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/qa"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/receiver"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/selector"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/subworkflow"
@@ -614,9 +606,8 @@ type nodeAdaptorEntry struct {
 	branch   func() nodes.BranchAdaptor // set only for branching nodes
 }
 
-// allNodeAdaptorEntries returns the full catalogue of node-adaptor factories.
-// Fresh closures are returned so each registration provides a brand new Config
-// instance per node, matching the original per-call behaviour.
+// allNodeAdaptorEntries returns the Mirap workflow catalogue. Fresh closures are
+// returned so each registration provides a brand new Config instance per node.
 func allNodeAdaptorEntries() []nodeAdaptorEntry {
 	return []nodeAdaptorEntry{
 		{entity.NodeTypeEntry, func() nodes.NodeAdaptor { return &entry.Config{} }, nil},
@@ -629,14 +620,10 @@ func allNodeAdaptorEntries() []nodeAdaptorEntry {
 		{entity.NodeTypeJsonDeserialization, func() nodes.NodeAdaptor { return &json.DeserializationConfig{} }, nil},
 		{entity.NodeTypeVariableAssigner, func() nodes.NodeAdaptor { return &variableassigner.Config{} }, nil},
 		{entity.NodeTypeVariableAssignerWithinLoop, func() nodes.NodeAdaptor { return &variableassigner.InLoopConfig{} }, nil},
-		{entity.NodeTypePlugin, func() nodes.NodeAdaptor { return &plugin.Config{} }, nil},
-		{entity.NodeTypeCodeRunner, func() nodes.NodeAdaptor { return &code.Config{} }, nil},
 		{entity.NodeTypeOutputEmitter, func() nodes.NodeAdaptor { return &emitter.Config{} }, nil},
 		{entity.NodeTypeExit, func() nodes.NodeAdaptor { return &exit.Config{} }, nil},
 		{entity.NodeTypeVariableAggregator, func() nodes.NodeAdaptor { return &variableaggregator.Config{} }, nil},
 		{entity.NodeTypeTextProcessor, func() nodes.NodeAdaptor { return &textprocessor.Config{} }, nil},
-		{entity.NodeTypeIntentDetector, func() nodes.NodeAdaptor { return &intentdetector.Config{} }, func() nodes.BranchAdaptor { return &intentdetector.Config{} }},
-		{entity.NodeTypeQuestionAnswer, func() nodes.NodeAdaptor { return &qa.Config{} }, func() nodes.BranchAdaptor { return &qa.Config{} }},
 		{entity.NodeTypeHTTPRequester, func() nodes.NodeAdaptor { return &httprequester.Config{} }, nil},
 		{entity.NodeTypeMirapAreaShipExtractor, func() nodes.NodeAdaptor { return &mirapareaship.Config{} }, nil},
 		{entity.NodeTypeMirapStayCalculation, func() nodes.NodeAdaptor { return &mirapstaycalc.Config{} }, nil},
@@ -645,25 +632,6 @@ func allNodeAdaptorEntries() []nodeAdaptorEntry {
 		{entity.NodeTypeMirapMMSIUnion, func() nodes.NodeAdaptor { return mirapmmsiset.NewUnionConfig() }, nil},
 		{entity.NodeTypeMirapMMSIDifference, func() nodes.NodeAdaptor { return mirapmmsiset.NewDifferenceConfig() }, nil},
 		{entity.NodeTypeLoop, func() nodes.NodeAdaptor { return &loop.Config{} }, nil},
-		{entity.NodeTypeKnowledgeIndexer, func() nodes.NodeAdaptor { return &knowledge.IndexerConfig{} }, nil},
-		{entity.NodeTypeKnowledgeRetriever, func() nodes.NodeAdaptor { return &knowledge.RetrieveConfig{} }, nil},
-		{entity.NodeTypeKnowledgeDeleter, func() nodes.NodeAdaptor { return &knowledge.DeleterConfig{} }, nil},
-		{entity.NodeTypeDatabaseInsert, func() nodes.NodeAdaptor { return &database.InsertConfig{} }, nil},
-		{entity.NodeTypeDatabaseUpdate, func() nodes.NodeAdaptor { return &database.UpdateConfig{} }, nil},
-		{entity.NodeTypeDatabaseQuery, func() nodes.NodeAdaptor { return &database.QueryConfig{} }, nil},
-		{entity.NodeTypeDatabaseDelete, func() nodes.NodeAdaptor { return &database.DeleteConfig{} }, nil},
-		{entity.NodeTypeDatabaseCustomSQL, func() nodes.NodeAdaptor { return &database.CustomSQLConfig{} }, nil},
-		{entity.NodeTypeLLM, func() nodes.NodeAdaptor { return &llm.Config{} }, nil},
-		{entity.NodeTypeCreateConversation, func() nodes.NodeAdaptor { return &conversation.CreateConversationConfig{} }, nil},
-		{entity.NodeTypeConversationUpdate, func() nodes.NodeAdaptor { return &conversation.UpdateConversationConfig{} }, nil},
-		{entity.NodeTypeConversationDelete, func() nodes.NodeAdaptor { return &conversation.DeleteConversationConfig{} }, nil},
-		{entity.NodeTypeConversationList, func() nodes.NodeAdaptor { return &conversation.ConversationListConfig{} }, nil},
-		{entity.NodeTypeConversationHistory, func() nodes.NodeAdaptor { return &conversation.ConversationHistoryConfig{} }, nil},
-		{entity.NodeTypeClearConversationHistory, func() nodes.NodeAdaptor { return &conversation.ClearConversationHistoryConfig{} }, nil},
-		{entity.NodeTypeMessageList, func() nodes.NodeAdaptor { return &conversation.MessageListConfig{} }, nil},
-		{entity.NodeTypeCreateMessage, func() nodes.NodeAdaptor { return &conversation.CreateMessageConfig{} }, nil},
-		{entity.NodeTypeEditMessage, func() nodes.NodeAdaptor { return &conversation.EditMessageConfig{} }, nil},
-		{entity.NodeTypeDeleteMessage, func() nodes.NodeAdaptor { return &conversation.DeleteMessageConfig{} }, nil},
 	}
 }
 

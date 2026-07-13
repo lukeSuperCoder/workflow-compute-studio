@@ -32,7 +32,6 @@ import (
 
 	workflow3 "github.com/coze-dev/coze-studio/backend/api/model/workflow"
 	"github.com/coze-dev/coze-studio/backend/application/base/ctxutil"
-	"github.com/coze-dev/coze-studio/backend/bizpkg/llm/modelbuilder"
 	workflowModel "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/model"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
@@ -68,24 +67,11 @@ type RepositoryImpl struct {
 	workflow.InterruptEventStore
 	workflow.CancelSignalStore
 	workflow.ExecuteHistoryStore
-	builtinModel modelbuilder.BaseChatModel
 	workflow.WorkflowConfig
-	workflow.Suggester
 }
 
 func NewRepository(idgen idgen.IDGenerator, db *gorm.DB, redis cache.Cmdable, tos storage.Storage,
-	cpStore einoCompose.CheckPointStore, chatModel modelbuilder.BaseChatModel, workflowConfig workflow.WorkflowConfig) (workflow.Repository, error) {
-	var sg workflow.Suggester
-	var err error
-	if chatModel != nil {
-		sg, err = NewSuggester(chatModel)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		logs.Warnf("[NewRepository] Failed to create suggester: %v", err)
-	}
-
+	cpStore einoCompose.CheckPointStore, workflowConfig workflow.WorkflowConfig) (workflow.Repository, error) {
 	return &RepositoryImpl{
 		IDGenerator:     idgen,
 		query:           query.Use(db),
@@ -102,19 +88,13 @@ func NewRepository(idgen idgen.IDGenerator, db *gorm.DB, redis cache.Cmdable, to
 			query: query.Use(db),
 			redis: redis,
 		},
-
-		builtinModel:   chatModel,
-		Suggester:      sg,
 		WorkflowConfig: workflowConfig,
 	}, nil
 
 }
 
 func (r *RepositoryImpl) Suggest(ctx context.Context, input *vo.SuggestInfo) ([]string, error) {
-	if r.Suggester == nil {
-		return []string{}, nil
-	}
-	return r.Suggester.Suggest(ctx, input)
+	return []string{}, nil
 }
 
 func (r *RepositoryImpl) CreateMeta(ctx context.Context, meta *vo.Meta) (int64, error) {
@@ -1765,10 +1745,6 @@ func (r *RepositoryImpl) BatchCreateConnectorWorkflowVersion(ctx context.Context
 	}
 
 	return nil
-}
-
-func (r *RepositoryImpl) GetKnowledgeRecallChatModel() modelbuilder.BaseChatModel {
-	return r.builtinModel
 }
 
 func (r *RepositoryImpl) GetObjectUrl(ctx context.Context, objectKey string, opts ...storage.GetOptFn) (string, error) {

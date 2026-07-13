@@ -18,22 +18,17 @@ package compose
 
 import (
 	"context"
-	"fmt"
 	"slices"
 	"strconv"
 
 	einoCompose "github.com/cloudwego/eino/compose"
 
-	model "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/model"
-	workflow2 "github.com/coze-dev/coze-studio/backend/domain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/execute"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/exit"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/llm"
 	schema2 "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/schema"
-	wrapPlugin "github.com/coze-dev/coze-studio/backend/domain/workflow/plugin"
 	"github.com/coze-dev/coze-studio/backend/pkg/lang/ptr"
 )
 
@@ -45,7 +40,6 @@ func (r *WorkflowRunner) designateOptions(ctx context.Context) ([]einoCompose.Op
 		workflowSC   = r.schema
 		eventChan    = r.eventChan
 		resumedEvent = r.interruptEvent
-		sw           = r.container
 	)
 
 	if wb.AppID != nil && exeCfg.AppID == nil {
@@ -85,13 +79,6 @@ func (r *WorkflowRunner) designateOptions(ctx context.Context) ([]einoCompose.Op
 					return nil, err
 				}
 				opts = append(opts, subOpts...)
-			} else if ns.Type == entity.NodeTypeLLM {
-				llmNodeOpts, err := llmToolCallbackOptions(ctx, ns, eventChan, sw)
-				if err != nil {
-					return nil, err
-				}
-
-				opts = append(opts, llmNodeOpts...)
 			}
 		} else {
 			parent := workflowSC.GetAllNodes()[parent]
@@ -105,14 +92,6 @@ func (r *WorkflowRunner) designateOptions(ctx context.Context) ([]einoCompose.Op
 					return nil, err
 				}
 				for _, subO := range subOpts {
-					opts = append(opts, WrapOpt(subO, parent.Key))
-				}
-			} else if ns.Type == entity.NodeTypeLLM {
-				llmNodeOpts, err := llmToolCallbackOptions(ctx, ns, eventChan, sw)
-				if err != nil {
-					return nil, err
-				}
-				for _, subO := range llmNodeOpts {
 					opts = append(opts, WrapOpt(subO, parent.Key))
 				}
 			}
@@ -146,7 +125,6 @@ func (r *WorkflowRunner) designateOptionsForSubWorkflow(ctx context.Context,
 	var (
 		resumeEvent = r.interruptEvent
 		eventChan   = r.eventChan
-		container   = r.container
 	)
 	subHandler := execute.NewSubWorkflowHandler(
 		parentHandler,
@@ -183,14 +161,6 @@ func (r *WorkflowRunner) designateOptionsForSubWorkflow(ctx context.Context,
 				for _, subO := range subOpts {
 					opts = append(opts, WrapOpt(subO, ns.Key))
 				}
-			} else if subNS.Type == entity.NodeTypeLLM {
-				llmNodeOpts, err := llmToolCallbackOptions(ctx, subNS, eventChan, container)
-				if err != nil {
-					return nil, err
-				}
-				for _, subO := range llmNodeOpts {
-					opts = append(opts, WrapOpt(subO, ns.Key))
-				}
 			}
 		} else {
 			parent := workflowSC.GetAllNodes()[parent]
@@ -206,122 +176,6 @@ func (r *WorkflowRunner) designateOptionsForSubWorkflow(ctx context.Context,
 				for _, subO := range subOpts {
 					opts = append(opts, WrapOpt(WrapOpt(subO, parent.Key), ns.Key))
 				}
-			} else if subNS.Type == entity.NodeTypeLLM {
-				llmNodeOpts, err := llmToolCallbackOptions(ctx, subNS, eventChan, container)
-				if err != nil {
-					return nil, err
-				}
-				for _, subO := range llmNodeOpts {
-					opts = append(opts, WrapOpt(WrapOpt(subO, parent.Key), ns.Key))
-				}
-			}
-		}
-	}
-
-	return opts, nil
-}
-
-func llmToolCallbackOptions(ctx context.Context, ns *schema2.NodeSchema, eventChan chan *execute.Event,
-	container *execute.StreamContainer) (
-	opts []einoCompose.Option, err error) {
-	// this is a LLM node.
-	// check if it has any tools, if no tools, then no callback options needed
-	// for each tool, extract the entity.FunctionInfo, create the ToolHandler, and add the callback option
-	if ns.Type != entity.NodeTypeLLM {
-		panic("impossible: llmToolCallbackOptions is called on a non-LLM node")
-	}
-
-	cfg := ns.Configs.(*llm.Config)
-	fcParams := cfg.FCParam
-	if fcParams != nil {
-		if fcParams.WorkflowFCParam != nil {
-			// TODO: try to avoid getting the workflow tool all over again
-			for _, wf := range fcParams.WorkflowFCParam.WorkflowList {
-				wfIDStr := wf.WorkflowID
-				wfID, err := strconv.ParseInt(wfIDStr, 10, 64)
-				if err != nil {
-					return nil, fmt.Errorf("invalid workflow id: %s", wfIDStr)
-				}
-				locator := model.FromDraft
-				if wf.WorkflowVersion != "" {
-					locator = model.FromSpecificVersion
-				}
-
-				wfTool, err := workflow2.GetRepository().WorkflowAsTool(ctx, vo.GetPolicy{
-					ID:      wfID,
-					QType:   locator,
-					Version: wf.WorkflowVersion,
-				}, vo.WorkflowToolConfig{})
-
-				if err != nil {
-					return nil, err
-				}
-
-				tInfo, err := wfTool.Info(ctx)
-				if err != nil {
-					return nil, err
-				}
-
-				funcInfo := entity.FunctionInfo{
-					Name:                  tInfo.Name,
-					Type:                  entity.WorkflowTool,
-					WorkflowName:          wfTool.GetWorkflow().Name,
-					WorkflowTerminatePlan: wfTool.TerminatePlan(),
-					APIID:                 wfID,
-					APIName:               wfTool.GetWorkflow().Name,
-					PluginID:              wfID,
-					PluginName:            wfTool.GetWorkflow().Name,
-				}
-
-				toolHandler := execute.NewToolHandler(eventChan, funcInfo)
-				opt := einoCompose.WithCallbacks(toolHandler)
-				opt = einoCompose.WithLambdaOption(nodes.WithOptsForNested(opt)).DesignateNode(string(ns.Key))
-				opts = append(opts, opt)
-			}
-
-			if container != nil {
-				toolMsgOpt := llm.WithToolWorkflowStreamContainer(container)
-				opt := einoCompose.WithLambdaOption(toolMsgOpt).DesignateNode(string(ns.Key))
-				opts = append(opts, opt)
-			}
-		}
-		if fcParams.PluginFCParam != nil {
-			for _, p := range fcParams.PluginFCParam.PluginList {
-				toolID, err := strconv.ParseInt(p.ApiId, 10, 64)
-				if err != nil {
-					return nil, err
-				}
-				pluginID, err := strconv.ParseInt(p.PluginID, 10, 64)
-				if err != nil {
-					return nil, err
-				}
-
-				toolInfoResponse, err := wrapPlugin.GetPluginToolsInfo(ctx, &wrapPlugin.ToolsInfoRequest{
-					PluginEntity: vo.PluginEntity{
-						PluginID:      pluginID,
-						PluginVersion: ptr.Of(p.PluginVersion),
-						PluginFrom:    p.PluginFrom,
-					},
-					ToolIDs: []int64{toolID},
-				})
-
-				if err != nil {
-					return nil, err
-				}
-
-				funcInfo := entity.FunctionInfo{
-					Name:       toolInfoResponse.ToolInfoList[toolID].ToolName,
-					Type:       entity.PluginTool,
-					PluginID:   pluginID,
-					PluginName: toolInfoResponse.PluginName,
-					APIID:      toolID,
-					APIName:    p.ApiName,
-				}
-
-				toolHandler := execute.NewToolHandler(eventChan, funcInfo)
-				opt := einoCompose.WithCallbacks(toolHandler)
-				opt = einoCompose.WithLambdaOption(nodes.WithOptsForNested(opt)).DesignateNode(string(ns.Key))
-				opts = append(opts, opt)
 			}
 		}
 	}

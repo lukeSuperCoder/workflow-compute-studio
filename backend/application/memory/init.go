@@ -17,12 +17,14 @@
 package memory
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 
 	database "github.com/coze-dev/coze-studio/backend/domain/memory/database/service"
 	"github.com/coze-dev/coze-studio/backend/domain/memory/variables/repository"
 	variables "github.com/coze-dev/coze-studio/backend/domain/memory/variables/service"
-	search "github.com/coze-dev/coze-studio/backend/domain/search/service"
+	searchEntity "github.com/coze-dev/coze-studio/backend/domain/search/entity"
 	"github.com/coze-dev/coze-studio/backend/infra/cache"
 	"github.com/coze-dev/coze-studio/backend/infra/idgen"
 	"github.com/coze-dev/coze-studio/backend/infra/rdb"
@@ -39,10 +41,14 @@ type MemoryApplicationServices struct {
 type ServiceComponents struct {
 	IDGen                  idgen.IDGenerator
 	DB                     *gorm.DB
-	EventBus               search.ResourceEventBus
+	EventBus               resourceEventPublisher
 	TosClient              storage.Storage
-	ResourceDomainNotifier search.ResourceEventBus
+	ResourceDomainNotifier resourceEventPublisher
 	CacheCli               cache.Cmdable
+}
+
+type resourceEventPublisher interface {
+	PublishResources(ctx context.Context, event *searchEntity.ResourceDomainEvent) error
 }
 
 func InitService(c *ServiceComponents) *MemoryApplicationServices {

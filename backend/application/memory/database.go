@@ -26,7 +26,6 @@ import (
 	document "github.com/coze-dev/coze-studio/backend/api/model/data/knowledge"
 	resCommon "github.com/coze-dev/coze-studio/backend/api/model/resource/common"
 	"github.com/coze-dev/coze-studio/backend/application/base/ctxutil"
-	"github.com/coze-dev/coze-studio/backend/application/search"
 	model "github.com/coze-dev/coze-studio/backend/crossdomain/database/model"
 	crossuser "github.com/coze-dev/coze-studio/backend/crossdomain/user"
 	"github.com/coze-dev/coze-studio/backend/domain/memory/database/entity"
@@ -44,7 +43,7 @@ import (
 
 type DatabaseApplicationService struct {
 	DomainSVC database.Database
-	eventbus  search.ResourceEventBus
+	eventbus  resourceEventPublisher
 }
 
 var DatabaseApplicationSVC = DatabaseApplicationService{}

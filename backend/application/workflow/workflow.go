@@ -38,24 +38,16 @@ import (
 	resource "github.com/coze-dev/coze-studio/backend/api/model/resource/common"
 	"github.com/coze-dev/coze-studio/backend/api/model/workflow"
 	"github.com/coze-dev/coze-studio/backend/application/base/ctxutil"
-	appknowledge "github.com/coze-dev/coze-studio/backend/application/knowledge"
 	appmemory "github.com/coze-dev/coze-studio/backend/application/memory"
-	appplugin "github.com/coze-dev/coze-studio/backend/application/plugin"
 	"github.com/coze-dev/coze-studio/backend/application/user"
 	"github.com/coze-dev/coze-studio/backend/bizpkg/debugutil"
-	crossknowledge "github.com/coze-dev/coze-studio/backend/crossdomain/knowledge"
-	model "github.com/coze-dev/coze-studio/backend/crossdomain/knowledge/model"
 	crosspermission "github.com/coze-dev/coze-studio/backend/crossdomain/permission"
-	pluginConsts "github.com/coze-dev/coze-studio/backend/crossdomain/plugin/consts"
 	crossuser "github.com/coze-dev/coze-studio/backend/crossdomain/user"
 	workflowModel "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/model"
 	"github.com/coze-dev/coze-studio/backend/domain/permission"
-	"github.com/coze-dev/coze-studio/backend/domain/plugin/dto"
-	search "github.com/coze-dev/coze-studio/backend/domain/search/entity"
 	domainWorkflow "github.com/coze-dev/coze-studio/backend/domain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
-	"github.com/coze-dev/coze-studio/backend/domain/workflow/plugin"
 	"github.com/coze-dev/coze-studio/backend/infra/idgen"
 	"github.com/coze-dev/coze-studio/backend/infra/imagex"
 	"github.com/coze-dev/coze-studio/backend/infra/storage"
@@ -314,7 +306,7 @@ func (w *ApplicationService) CreateWorkflow(ctx context.Context, req *workflow.C
 		return nil, err
 	}
 
-	err = PublishWorkflowResource(ctx, id, ptr.Of(int32(wf.Mode)), search.Created, &search.ResourceDocument{
+	err = PublishWorkflowResource(ctx, id, ptr.Of(int32(wf.Mode)), resourceCreated, &workflowResourceDocument{
 		Name:          &wf.Name,
 		APPID:         wf.AppID,
 		SpaceID:       &wf.SpaceID,
@@ -389,7 +381,7 @@ func (w *ApplicationService) UpdateWorkflowMeta(ctx context.Context, req *workfl
 	}
 
 	safego.Go(ctx, func() {
-		err := PublishWorkflowResource(ctx, workflowID, nil, search.Updated, &search.ResourceDocument{
+		err := PublishWorkflowResource(ctx, workflowID, nil, resourceUpdated, &workflowResourceDocument{
 			Name:         req.Name,
 			UpdateTimeMS: ptr.Of(time.Now().UnixMilli()),
 		})
@@ -429,7 +421,7 @@ func (w *ApplicationService) deleteWorkflowResource(ctx context.Context, policy 
 
 	safego.Go(ctx, func() {
 		for _, id := range ids {
-			if err = PublishWorkflowResource(ctx, id, nil, search.Deleted, &search.ResourceDocument{}); err != nil {
+			if err = PublishWorkflowResource(ctx, id, nil, resourceDeleted, &workflowResourceDocument{}); err != nil {
 				logs.CtxErrorf(ctx, "publish delete workflow event resource failed, workflowID: %d, err: %v", id, err)
 			}
 		}
@@ -1033,55 +1025,12 @@ func (w *ApplicationService) CopyWorkflowFromAppToLibrary(ctx context.Context, w
 		return 0, nil, err
 	}
 
-	pluginMap := make(map[int64]*vo.PluginEntity)
-	pluginToolMap := make(map[int64]int64)
-
 	if len(ds.PluginIDs) > 0 {
-		for idx := range ds.PluginIDs {
-			id := ds.PluginIDs[idx]
-			response, err := appplugin.PluginApplicationSVC.CopyPlugin(ctx, &dto.CopyPluginRequest{
-				PluginID:  id,
-				UserID:    ctxutil.MustGetUIDFromCtx(ctx),
-				CopyScene: pluginConsts.CopySceneOfToLibrary,
-			})
-			if err != nil {
-				return 0, nil, err
-			}
-			pInfo := response.Plugin
-			pluginMap[id] = &vo.PluginEntity{
-				PluginID:      pInfo.ID,
-				PluginVersion: pInfo.Version,
-			}
-			for o, n := range response.Tools {
-				pluginToolMap[o] = n.ID
-			}
-
-		}
+		return 0, nil, fmt.Errorf("workflow-only backend does not support copying plugin dependencies")
 	}
 
-	relatedKnowledgeMap := make(map[int64]int64, len(ds.KnowledgeIDs))
 	if len(ds.KnowledgeIDs) > 0 {
-		taskUniqIDs, err := w.IDGenerator.GenMultiIDs(ctx, len(ds.KnowledgeIDs))
-		if err != nil {
-			return 0, nil, err
-		}
-
-		for idx := range ds.KnowledgeIDs {
-			id := ds.KnowledgeIDs[idx]
-			response, err := appknowledge.KnowledgeSVC.CopyKnowledge(ctx, &model.CopyKnowledgeRequest{
-				KnowledgeID:   id,
-				TargetSpaceID: spaceID,
-				TargetUserID:  ctxutil.MustGetUIDFromCtx(ctx),
-				TaskUniqKey:   strconv.FormatInt(taskUniqIDs[idx], 10),
-			})
-			if err != nil {
-				return 0, nil, err
-			}
-			if response.CopyStatus == model.CopyStatus_Failed {
-				return 0, nil, fmt.Errorf("failed to copy knowledge, knowledge id=%d", id)
-			}
-			relatedKnowledgeMap[id] = response.TargetKnowledgeID
-		}
+		return 0, nil, fmt.Errorf("workflow-only backend does not support copying knowledge dependencies")
 	}
 
 	relatedDatabaseMap := make(map[int64]int64, len(ds.DatabaseIDs))
@@ -1101,10 +1050,7 @@ func (w *ApplicationService) CopyWorkflowFromAppToLibrary(ctx context.Context, w
 	}
 
 	relatedWorkflows, vIssues, err := w.copyWorkflowFromAppToLibrary(ctx, workflowID, appID, vo.ExternalResourceRelated{
-		PluginMap:     pluginMap,
-		PluginToolMap: pluginToolMap,
-		KnowledgeMap:  relatedKnowledgeMap,
-		DatabaseMap:   relatedDatabaseMap,
+		DatabaseMap: relatedDatabaseMap,
 	})
 	if err != nil {
 		return 0, nil, err
@@ -1131,7 +1077,7 @@ func (w *ApplicationService) copyWorkflowFromAppToLibrary(ctx context.Context, w
 	for index := range resp.CopiedWorkflows {
 		wf := resp.CopiedWorkflows[index]
 
-		err = PublishWorkflowResource(ctx, wf.ID, ptr.Of(int32(wf.Meta.Mode)), search.Created, &search.ResourceDocument{
+		err = PublishWorkflowResource(ctx, wf.ID, ptr.Of(int32(wf.Meta.Mode)), resourceCreated, &workflowResourceDocument{
 			Name:    &wf.Name,
 			SpaceID: &wf.SpaceID,
 			OwnerID: &wf.CreatorID,
@@ -1188,7 +1134,7 @@ func (w *ApplicationService) DuplicateWorkflowsByAppID(ctx context.Context, sour
 
 	for index := range copiedWorkflowArray {
 		wf := copiedWorkflowArray[index]
-		err = PublishWorkflowResource(ctx, wf.ID, ptr.Of(int32(wf.Meta.Mode)), search.Created, &search.ResourceDocument{
+		err = PublishWorkflowResource(ctx, wf.ID, ptr.Of(int32(wf.Meta.Mode)), resourceCreated, &workflowResourceDocument{
 			Name:          &wf.Name,
 			SpaceID:       &wf.SpaceID,
 			OwnerID:       &wf.CreatorID,
@@ -1233,7 +1179,7 @@ func (w *ApplicationService) copyWorkflow(ctx context.Context, workflowID int64,
 		return nil, err
 	}
 
-	err = PublishWorkflowResource(ctx, wf.ID, ptr.Of(int32(wf.Meta.Mode)), search.Created, &search.ResourceDocument{
+	err = PublishWorkflowResource(ctx, wf.ID, ptr.Of(int32(wf.Meta.Mode)), resourceCreated, &workflowResourceDocument{
 		Name:          &wf.Name,
 		APPID:         wf.AppID,
 		SpaceID:       &wf.SpaceID,
@@ -1266,32 +1212,12 @@ func (w *ApplicationService) MoveWorkflowFromAppToLibrary(ctx context.Context, w
 		return 0, nil, err
 	}
 
-	pluginMap := make(map[int64]*vo.PluginEntity)
 	if len(ds.PluginIDs) > 0 {
-		for idx := range ds.PluginIDs {
-			id := ds.PluginIDs[idx]
-			pInfo, err := appplugin.PluginApplicationSVC.MoveAPPPluginToLibrary(ctx, id)
-			if err != nil {
-				return 0, nil, err
-			}
-			pluginMap[id] = &vo.PluginEntity{
-				PluginID:      pInfo.ID,
-				PluginVersion: pInfo.Version,
-			}
-
-		}
+		return 0, nil, fmt.Errorf("workflow-only backend does not support moving plugin dependencies")
 	}
 
 	if len(ds.KnowledgeIDs) > 0 {
-		for idx := range ds.KnowledgeIDs {
-			id := ds.KnowledgeIDs[idx]
-			err := appknowledge.KnowledgeSVC.MoveKnowledgeToLibrary(ctx, &model.MoveKnowledgeToLibraryRequest{
-				KnowledgeID: id,
-			})
-			if err != nil {
-				return 0, nil, err
-			}
-		}
+		return 0, nil, fmt.Errorf("workflow-only backend does not support moving knowledge dependencies")
 	}
 
 	if len(ds.DatabaseIDs) > 0 {
@@ -1303,9 +1229,7 @@ func (w *ApplicationService) MoveWorkflowFromAppToLibrary(ctx context.Context, w
 		}
 	}
 
-	relatedWorkflows, vIssues, err := w.copyWorkflowFromAppToLibrary(ctx, workflowID, appID, vo.ExternalResourceRelated{
-		PluginMap: pluginMap,
-	})
+	relatedWorkflows, vIssues, err := w.copyWorkflowFromAppToLibrary(ctx, workflowID, appID, vo.ExternalResourceRelated{})
 	if err != nil {
 		return 0, nil, err
 	}
@@ -1313,9 +1237,7 @@ func (w *ApplicationService) MoveWorkflowFromAppToLibrary(ctx context.Context, w
 		return 0, vIssues, nil
 	}
 
-	err = GetWorkflowDomainSVC().SyncRelatedWorkflowResources(ctx, appID, relatedWorkflows, vo.ExternalResourceRelated{
-		PluginMap: pluginMap,
-	})
+	err = GetWorkflowDomainSVC().SyncRelatedWorkflowResources(ctx, appID, relatedWorkflows, vo.ExternalResourceRelated{})
 	if err != nil {
 		return 0, nil, err
 	}
@@ -2751,64 +2673,7 @@ func (w *ApplicationService) GetApiDetail(ctx context.Context, req *workflow.Get
 		return nil, err
 	}
 
-	toolID, err := strconv.ParseInt(req.GetAPIID(), 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	pluginID, err := strconv.ParseInt(req.GetPluginID(), 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	toolInfoResponse, err := plugin.GetPluginToolsInfo(ctx, &plugin.ToolsInfoRequest{
-		PluginEntity: vo.PluginEntity{
-			PluginID:      pluginID,
-			PluginVersion: req.PluginVersion,
-			PluginFrom:    req.PluginFrom,
-		},
-		ToolIDs: []int64{toolID},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	toolInfo, ok := toolInfoResponse.ToolInfoList[toolID]
-	if !ok {
-		return nil, fmt.Errorf("tool info not found, tool id: %d", toolID)
-	}
-
-	inputVars, err := slices.TransformWithErrorCheck(toolInfo.Inputs, toVariable)
-	if err != nil {
-		return nil, err
-	}
-
-	outputVars, err := slices.TransformWithErrorCheck(toolInfo.Outputs, toVariable)
-	if err != nil {
-		return nil, err
-	}
-
-	toolDetailInfo := &vo.ToolDetailInfo{
-		ApiDetailData: &workflow.ApiDetailData{
-			PluginID:            req.GetPluginID(),
-			SpaceID:             req.GetSpaceID(),
-			Icon:                toolInfoResponse.IconURL,
-			Name:                toolInfoResponse.PluginName,
-			Desc:                toolInfoResponse.Description,
-			ApiName:             toolInfo.ToolName,
-			Version:             &toolInfoResponse.Version,
-			VersionName:         &toolInfoResponse.Version,
-			PluginType:          workflow.PluginType(toolInfoResponse.PluginType),
-			LatestVersionName:   toolInfoResponse.LatestVersion,
-			LatestVersion:       toolInfoResponse.LatestVersion,
-			PluginProductStatus: ternary.IFElse(toolInfoResponse.IsOfficial, int64(1), 0),
-			ProjectID:           ternary.IFElse(toolInfoResponse.AppID != 0, ptr.Of(strconv.FormatInt(toolInfoResponse.AppID, 10)), nil),
-			PluginFrom:          req.PluginFrom,
-		},
-		ToolInputs:  inputVars,
-		ToolOutputs: outputVars,
-	}
-
-	return toolDetailInfo, nil
+	return nil, fmt.Errorf("workflow-only backend does not support plugin API detail")
 }
 
 func (w *ApplicationService) GetLLMNodeFCSettingDetail(ctx context.Context, req *workflow.GetLLMNodeFCSettingDetailRequest) (
@@ -2829,83 +2694,11 @@ func (w *ApplicationService) GetLLMNodeFCSettingDetail(ctx context.Context, req 
 	}
 
 	var (
-		pluginToolsInfoReqs = make(map[int64]*plugin.ToolsInfoRequest)
-		pluginDetailMap     = make(map[string]*workflow.PluginDetail)
-		toolsDetailInfo     = make(map[string]*workflow.APIDetail)
-		workflowDetailMap   = make(map[string]*workflow.WorkflowDetail)
-		knowledgeDetailMap  = make(map[string]*workflow.DatasetDetail)
+		pluginDetailMap    = make(map[string]*workflow.PluginDetail)
+		toolsDetailInfo    = make(map[string]*workflow.APIDetail)
+		workflowDetailMap  = make(map[string]*workflow.WorkflowDetail)
+		knowledgeDetailMap = make(map[string]*workflow.DatasetDetail)
 	)
-
-	if len(req.GetPluginList()) > 0 {
-		for _, pl := range req.GetPluginList() {
-			pluginID, err := strconv.ParseInt(pl.PluginID, 10, 64)
-			if err != nil {
-				return nil, err
-			}
-
-			toolID, err := strconv.ParseInt(pl.APIID, 10, 64)
-			if err != nil {
-				return nil, err
-			}
-
-			if r, ok := pluginToolsInfoReqs[pluginID]; ok {
-				r.ToolIDs = append(r.ToolIDs, toolID)
-			} else {
-				pluginToolsInfoReqs[pluginID] = &plugin.ToolsInfoRequest{
-					PluginEntity: vo.PluginEntity{
-						PluginID:      pluginID,
-						PluginVersion: pl.PluginVersion,
-						PluginFrom:    pl.PluginFrom,
-					},
-					ToolIDs: []int64{toolID},
-					IsDraft: pl.IsDraft,
-				}
-			}
-
-		}
-		for _, r := range pluginToolsInfoReqs {
-			resp, err := plugin.GetPluginToolsInfo(ctx, r)
-			if err != nil {
-				return nil, err
-			}
-
-			pluginIdStr := strconv.FormatInt(resp.PluginID, 10)
-			if _, ok := pluginDetailMap[pluginIdStr]; !ok {
-				pluginDetail := &workflow.PluginDetail{
-					ID:          pluginIdStr,
-					Name:        resp.PluginName,
-					IconURL:     resp.IconURL,
-					Description: resp.Description,
-					PluginType:  resp.PluginType,
-					VersionName: resp.Version,
-					IsOfficial:  resp.IsOfficial,
-				}
-
-				if resp.LatestVersion != nil {
-					pluginDetail.LatestVersionName = *resp.LatestVersion
-				}
-				pluginDetailMap[pluginIdStr] = pluginDetail
-			}
-
-			for id, tl := range resp.ToolInfoList {
-				toolIDStr := strconv.FormatInt(id, 10)
-				if _, ok := toolsDetailInfo[toolIDStr]; !ok {
-					toolDetail := &workflow.APIDetail{
-						ID:          toolIDStr,
-						PluginID:    pluginIdStr,
-						Name:        tl.ToolName,
-						Description: tl.Description,
-					}
-					toolsDetailInfo[toolIDStr] = toolDetail
-
-					toolDetail.Parameters = tl.Inputs
-
-				}
-
-			}
-
-		}
-	}
 
 	if len(req.GetWorkflowList()) > 0 {
 		var (
@@ -2982,29 +2775,6 @@ func (w *ApplicationService) GetLLMNodeFCSettingDetail(ctx context.Context, req 
 		}
 	}
 
-	if len(req.GetDatasetList()) > 0 {
-		knowledgeOperator := crossknowledge.DefaultSVC()
-		knowledgeIDs, err := slices.TransformWithErrorCheck(req.GetDatasetList(), func(a *workflow.DatasetFCItem) (int64, error) {
-			return strconv.ParseInt(a.GetDatasetID(), 10, 64)
-		})
-		if err != nil {
-			return nil, err
-		}
-		details, err := knowledgeOperator.ListKnowledgeDetail(ctx, &model.ListKnowledgeDetailRequest{KnowledgeIDs: knowledgeIDs})
-		if err != nil {
-			return nil, err
-		}
-		knowledgeDetailMap = slices.ToMap(details.KnowledgeDetails, func(kd *model.KnowledgeDetail) (string, *workflow.DatasetDetail) {
-			return strconv.FormatInt(kd.ID, 10), &workflow.DatasetDetail{
-				ID:         strconv.FormatInt(kd.ID, 10),
-				Name:       kd.Name,
-				IconURL:    kd.IconURL,
-				FormatType: kd.FormatType,
-			}
-		})
-
-	}
-
 	response := &workflow.GetLLMNodeFCSettingDetailResponse{
 		PluginDetailMap:    pluginDetailMap,
 		PluginAPIDetailMap: toolsDetailInfo,
@@ -3035,56 +2805,6 @@ func (w *ApplicationService) GetLLMNodeFCSettingsMerged(ctx context.Context, req
 	}
 
 	var fcPluginSetting *workflow.FCPluginSetting
-	if req.GetPluginFcSetting() != nil {
-		var (
-			pluginFcSetting = req.GetPluginFcSetting()
-			isDraft         = pluginFcSetting.GetIsDraft()
-		)
-
-		pluginID, err := strconv.ParseInt(pluginFcSetting.GetPluginID(), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		toolID, err := strconv.ParseInt(pluginFcSetting.GetAPIID(), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		pluginReq := &plugin.ToolsInfoRequest{
-			PluginEntity: vo.PluginEntity{
-				PluginID:   pluginID,
-				PluginFrom: pluginFcSetting.PluginFrom,
-			},
-			ToolIDs: []int64{toolID},
-			IsDraft: isDraft,
-		}
-
-		pInfo, err := plugin.GetPluginToolsInfo(ctx, pluginReq)
-		if err != nil {
-			return nil, err
-		}
-		toolInfo, ok := pInfo.ToolInfoList[toolID]
-		if !ok {
-			return nil, fmt.Errorf("tool info not found, too id=%v", toolID)
-		}
-
-		latestRequestParams := toolInfo.Inputs
-		latestResponseParams := toolInfo.Outputs
-		mergeWorkflowAPIParameters(latestRequestParams, pluginFcSetting.GetRequestParams())
-		mergeWorkflowAPIParameters(latestResponseParams, pluginFcSetting.GetResponseParams())
-
-		fcPluginSetting = &workflow.FCPluginSetting{
-			PluginID:       strconv.FormatInt(pInfo.PluginID, 10),
-			APIID:          strconv.FormatInt(toolInfo.ToolID, 10),
-			APIName:        toolInfo.ToolName,
-			IsDraft:        isDraft,
-			RequestParams:  latestRequestParams,
-			ResponseParams: latestResponseParams,
-			PluginVersion:  pluginFcSetting.GetPluginVersion(),
-			ResponseStyle:  &workflow.ResponseStyle{},
-		}
-	}
 	var fCWorkflowSetting *workflow.FCWorkflowSetting
 	if setting := req.GetWorkflowFcSetting(); setting != nil {
 		wID, err := strconv.ParseInt(setting.GetWorkflowID(), 10, 64)
@@ -3556,7 +3276,7 @@ func (w *ApplicationService) publishWorkflowResource(ctx context.Context, policy
 
 	safego.Go(ctx, func() {
 		now := time.Now().UnixMilli()
-		if err := PublishWorkflowResource(ctx, policy.ID, nil, search.Updated, &search.ResourceDocument{
+		if err := PublishWorkflowResource(ctx, policy.ID, nil, resourceUpdated, &workflowResourceDocument{
 			PublishStatus: ptr.Of(resource.PublishStatus_Published),
 			UpdateTimeMS:  ptr.Of(now),
 			PublishTimeMS: ptr.Of(now),

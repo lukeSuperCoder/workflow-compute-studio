@@ -21,85 +21,13 @@ import (
 	"fmt"
 
 	"github.com/coze-dev/coze-studio/backend/api/model/data/database/table"
-	"github.com/coze-dev/coze-studio/backend/crossdomain/agent"
-	"github.com/coze-dev/coze-studio/backend/crossdomain/app"
 	"github.com/coze-dev/coze-studio/backend/crossdomain/database"
-	"github.com/coze-dev/coze-studio/backend/crossdomain/knowledge"
-	"github.com/coze-dev/coze-studio/backend/crossdomain/plugin"
 	crossuser "github.com/coze-dev/coze-studio/backend/crossdomain/user"
 	crossworkflow "github.com/coze-dev/coze-studio/backend/crossdomain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
 
 	databaseModel "github.com/coze-dev/coze-studio/backend/crossdomain/database/model"
-	knowledgeModel "github.com/coze-dev/coze-studio/backend/crossdomain/knowledge/model"
 )
-
-type AgentResourceQueryer struct {
-	agentService agent.SingleAgent
-}
-
-func NewAgentResourceQueryer() *AgentResourceQueryer {
-	return &AgentResourceQueryer{
-		agentService: agent.DefaultSVC(),
-	}
-}
-
-func (q *AgentResourceQueryer) QueryResourceInfo(ctx context.Context, resourceIDs []int64, isDraft *bool) ([]*ResourceInfo, error) {
-	var result []*ResourceInfo
-
-	for _, id := range resourceIDs {
-		agentInfo, err := q.agentService.GetSingleAgentDraft(ctx, id)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query bot %d: %w", id, err)
-		}
-
-		if agentInfo != nil {
-			result = append(result, &ResourceInfo{
-				ID:        id,
-				CreatorID: agentInfo.CreatorID,
-				SpaceID:   &agentInfo.SpaceID,
-			})
-		}
-	}
-
-	return result, nil
-}
-
-func (q *AgentResourceQueryer) GetResourceType() ResourceType {
-	return ResourceTypeAgent
-}
-
-type PluginResourceQueryer struct {
-	pluginService plugin.PluginService
-}
-
-func NewPluginResourceQueryer() *PluginResourceQueryer {
-	return &PluginResourceQueryer{
-		pluginService: plugin.DefaultSVC(),
-	}
-}
-
-func (q *PluginResourceQueryer) QueryResourceInfo(ctx context.Context, resourceIDs []int64, isDraft *bool) ([]*ResourceInfo, error) {
-
-	plugins, err := q.pluginService.MGetDraftPlugins(ctx, resourceIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query draft plugins: %w", err)
-	}
-	var result []*ResourceInfo
-	for _, plugin := range plugins {
-		result = append(result, &ResourceInfo{
-			ID:        plugin.ID,
-			CreatorID: plugin.DeveloperID,
-			SpaceID:   &plugin.SpaceID,
-		})
-	}
-
-	return result, nil
-}
-
-func (q *PluginResourceQueryer) GetResourceType() ResourceType {
-	return ResourceTypePlugin
-}
 
 type WorkflowResourceQueryer struct {
 	workflowService crossworkflow.Workflow
@@ -138,43 +66,6 @@ func (q *WorkflowResourceQueryer) QueryResourceInfo(ctx context.Context, resourc
 
 func (q *WorkflowResourceQueryer) GetResourceType() ResourceType {
 	return ResourceTypeWorkflow
-}
-
-type KnowledgeResourceQueryer struct {
-	knowledgeService knowledge.Knowledge
-}
-
-func NewKnowledgeResourceQueryer() *KnowledgeResourceQueryer {
-	return &KnowledgeResourceQueryer{
-		knowledgeService: knowledge.DefaultSVC(),
-	}
-}
-
-func (q *KnowledgeResourceQueryer) QueryResourceInfo(ctx context.Context, resourceIDs []int64, isDraft *bool) ([]*ResourceInfo, error) {
-
-	resp, err := q.knowledgeService.MGetKnowledgeByID(ctx, &knowledgeModel.MGetKnowledgeByIDRequest{
-		KnowledgeIDs: resourceIDs,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query knowledge: %w", err)
-	}
-
-	var result []*ResourceInfo
-	for _, knowledgeInfo := range resp.Knowledge {
-		if knowledgeInfo != nil {
-			result = append(result, &ResourceInfo{
-				ID:        knowledgeInfo.ID,
-				CreatorID: knowledgeInfo.CreatorID,
-				SpaceID:   &knowledgeInfo.SpaceID,
-			})
-		}
-	}
-
-	return result, nil
-}
-
-func (q *KnowledgeResourceQueryer) GetResourceType() ResourceType {
-	return ResourceTypeKnowledge
 }
 
 type DatabaseResourceQueryer struct {
@@ -223,113 +114,6 @@ func (q *DatabaseResourceQueryer) QueryResourceInfo(ctx context.Context, resourc
 
 func (q *DatabaseResourceQueryer) GetResourceType() ResourceType {
 	return ResourceTypeDatabase
-}
-
-type AppResourceQueryer struct {
-	appService app.AppService
-}
-
-func NewAppResourceQueryer() *AppResourceQueryer {
-	return &AppResourceQueryer{
-		appService: app.DefaultSVC(),
-	}
-}
-
-func (q *AppResourceQueryer) QueryResourceInfo(ctx context.Context, resourceIDs []int64, isDraft *bool) ([]*ResourceInfo, error) {
-	var result []*ResourceInfo
-
-	for _, id := range resourceIDs {
-		appInfo, err := q.appService.GetDraftAPP(ctx, id)
-		if err != nil {
-			return nil, fmt.Errorf("failed to query app %d: %w", id, err)
-		}
-
-		if appInfo != nil {
-			result = append(result, &ResourceInfo{
-				ID:        id,
-				CreatorID: appInfo.OwnerID,
-				SpaceID:   &appInfo.SpaceID,
-			})
-		}
-	}
-
-	return result, nil
-}
-
-func (q *AppResourceQueryer) GetResourceType() ResourceType {
-	return ResourceTypeApp
-}
-
-type KnowledgeSliceResourceQueryer struct {
-	knowledgeService knowledge.Knowledge
-}
-
-func NewKnowledgeSliceResourceQueryer() *KnowledgeSliceResourceQueryer {
-	return &KnowledgeSliceResourceQueryer{
-		knowledgeService: knowledge.DefaultSVC(),
-	}
-}
-
-func (q *KnowledgeSliceResourceQueryer) QueryResourceInfo(ctx context.Context, resourceIDs []int64, isDraft *bool) ([]*ResourceInfo, error) {
-	resp, err := q.knowledgeService.MGetSlice(ctx, &knowledgeModel.MGetSliceRequest{
-		SliceIDs: resourceIDs,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query knowledge slice: %w", err)
-	}
-
-	var result []*ResourceInfo
-	for _, slice := range resp.Slices {
-		if slice != nil {
-			result = append(result, &ResourceInfo{
-				ID:        slice.ID,
-				CreatorID: slice.CreatorID,
-				SpaceID:   &slice.SpaceID,
-			})
-		}
-	}
-
-	return result, nil
-}
-
-func (q *KnowledgeSliceResourceQueryer) GetResourceType() ResourceType {
-	return ResourceTypeKnowledgeSlice
-}
-
-type KnowledgeDocumentResourceQueryer struct {
-	knowledgeService knowledge.Knowledge
-}
-
-func NewKnowledgeDocumentResourceQueryer() *KnowledgeDocumentResourceQueryer {
-	return &KnowledgeDocumentResourceQueryer{
-		knowledgeService: knowledge.DefaultSVC(),
-	}
-}
-
-func (q *KnowledgeDocumentResourceQueryer) QueryResourceInfo(ctx context.Context, resourceIDs []int64, isDraft *bool) ([]*ResourceInfo, error) {
-	resp, err := q.knowledgeService.MGetDocument(ctx, &knowledgeModel.MGetDocumentRequest{
-		DocumentIDs: resourceIDs,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query knowledge document: %w", err)
-	}
-
-	var result []*ResourceInfo
-	for _, document := range resp.Documents {
-		if document != nil {
-			result = append(result, &ResourceInfo{
-				ID:        document.ID,
-				CreatorID: document.CreatorID,
-				SpaceID:   &document.SpaceID,
-			})
-		}
-	}
-
-	return result, nil
-}
-
-func (q *KnowledgeDocumentResourceQueryer) GetResourceType() ResourceType {
-	return ResourceTypeKnowledgeDocument
 }
 
 type WorkspaceResourceQueryer struct {

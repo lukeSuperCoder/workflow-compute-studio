@@ -16,12 +16,6 @@
 
 package vo
 
-import (
-	"github.com/coze-dev/coze-studio/backend/api/model/app/bot_common"
-	"github.com/coze-dev/coze-studio/backend/bizpkg/llm/modelbuilder"
-	"github.com/coze-dev/coze-studio/backend/pkg/lang/ptr"
-)
-
 type LLMParams struct {
 	ModelName         string         `json:"modelName"`
 	ModelType         int64          `json:"modelType"`
@@ -45,32 +39,3 @@ const (
 	ResponseFormatMarkdown ResponseFormat = 1
 	ResponseFormatJSON     ResponseFormat = 2
 )
-
-func (l *LLMParams) ToModelBuilderLLMParams() *modelbuilder.LLMParams {
-	m := modelbuilder.LLMParams{
-		FrequencyPenalty: float32(l.FrequencyPenalty),
-		PresencePenalty:  float32(l.PresencePenalty),
-		MaxTokens:        l.MaxTokens,
-	}
-
-	if l.Temperature != nil {
-		m.Temperature = ptr.Of(float32(ptr.From(l.Temperature)))
-	}
-	if l.TopP != nil {
-		m.TopP = ptr.Of(float32(ptr.From(l.TopP)))
-	}
-	if l.TopK != nil {
-		m.TopK = ptr.Of(int32(ptr.From(l.TopK)))
-	}
-
-	switch l.ResponseFormat {
-	case ResponseFormatText:
-		m.ResponseFormat = bot_common.ModelResponseFormat_Text
-	case ResponseFormatMarkdown:
-		m.ResponseFormat = bot_common.ModelResponseFormat_Markdown
-	case ResponseFormatJSON:
-		m.ResponseFormat = bot_common.ModelResponseFormat_JSON
-	}
-
-	return &m
-}

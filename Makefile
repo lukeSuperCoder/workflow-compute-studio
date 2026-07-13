@@ -1,4 +1,4 @@
-.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-server workflow-web workflow-smoke workflow-go-test workflow-down
+.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-server workflow-web workflow-smoke workflow-go-test workflow-down dev-server dev-web test build
 
 # 定义脚本路径
 SCRIPTS_DIR := ./scripts
@@ -157,6 +157,10 @@ workflow-web:
 	@echo "Start Mirap workflow frontend"
 	@cd frontend/apps/workflow-studio && npm run dev
 
+dev-server: workflow-server
+
+dev-web: workflow-web
+
 workflow-smoke: workflow-env
 	@echo "Run workflow-only API smoke test"
 	@scripts/workflow_smoke_test.sh
@@ -165,6 +169,12 @@ workflow-go-test:
 	@echo "Run workflow Go tests"
 	@cd backend && go test ./application/workflow ./domain/workflow/entity ./domain/workflow/service
 	@cd backend && go test -gcflags=all='-N -l' ./domain/workflow/internal/canvas/adaptor
+
+test: workflow-go-test
+
+build:
+	@echo "Build workflow-only backend"
+	@cd backend && go build -o ../bin/workflow-server ./cmd/workflow-server
 
 workflow-down: workflow-env
 	@echo "Stop isolated Mirap workflow middleware"
@@ -199,6 +209,10 @@ help:
 	@echo "  workflow-smoke   - Run workflow-only API smoke test against LISTEN_ADDR."
 	@echo "  workflow-go-test - Run workflow Go unit tests with mockey-compatible flags."
 	@echo "  workflow-down    - Stop isolated workflow MySQL and Redis."
+	@echo "  dev-server       - Alias for workflow-server."
+	@echo "  dev-web          - Alias for workflow-web."
+	@echo "  test             - Alias for workflow-go-test."
+	@echo "  build            - Build workflow-only backend binary to bin/workflow-server."
 	@echo ""
 	@echo "OceanBase Commands:"
 	@echo "  oceanbase_env    - Setup OceanBase environment file (like 'env')."

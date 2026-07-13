@@ -18,44 +18,29 @@ package workflow
 
 import (
 	"context"
-
-	"github.com/coze-dev/coze-studio/backend/api/model/resource/common"
-	"github.com/coze-dev/coze-studio/backend/domain/search/entity"
-	search "github.com/coze-dev/coze-studio/backend/domain/search/entity"
-	"github.com/coze-dev/coze-studio/backend/domain/search/service"
 )
 
-var eventBus service.ResourceEventBus
+type resourceOp int
 
-func setEventBus(bus service.ResourceEventBus) {
-	eventBus = bus
+const (
+	resourceCreated resourceOp = iota + 1
+	resourceUpdated
+	resourceDeleted
+)
+
+type workflowResourceDocument struct {
+	Name          *string
+	APPID         *int64
+	SpaceID       *int64
+	OwnerID       *int64
+	PublishStatus any
+	CreateTimeMS  *int64
+	UpdateTimeMS  *int64
+	PublishTimeMS *int64
 }
 
-func PublishWorkflowResource(ctx context.Context, workflowID int64, mode *int32, op search.OpType, r *search.ResourceDocument) error {
-	if r == nil {
-		r = &search.ResourceDocument{}
-	}
+func setEventBus(_ any) {}
 
-	r.ResType = common.ResType_Workflow
-	r.ResID = workflowID
-	r.ResSubType = mode
-
-	event := &entity.ResourceDomainEvent{
-		OpType:   entity.OpType(op),
-		Resource: r,
-	}
-
-	if op == search.Created {
-		event.Resource.CreateTimeMS = r.CreateTimeMS
-		event.Resource.UpdateTimeMS = r.UpdateTimeMS
-	} else if op == search.Updated {
-		event.Resource.UpdateTimeMS = r.UpdateTimeMS
-	}
-
-	err := eventBus.PublishResources(ctx, event)
-	if err != nil {
-		return err
-	}
-
+func PublishWorkflowResource(context.Context, int64, *int32, resourceOp, *workflowResourceDocument) error {
 	return nil
 }

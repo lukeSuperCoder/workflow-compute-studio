@@ -1,8 +1,8 @@
 # Mirap Workflow Studio 新仓库分阶段抽离改造计划
 
 > 文档类型：架构改造计划
-> 更新日期：2026-07-10
-> 目标：从 Coze Studio 中抽离工作流能力，形成不依赖 Docker、AI、知识库、搜索与消息队列的独立 Mirap Workflow Studio。
+> 更新日期：2026-07-13
+> 目标：从 Coze Studio 中抽离工作流能力，形成不依赖 AI、知识库、搜索、消息队列和 Coze 全量 Docker Compose 的独立 Mirap Workflow Studio；开发期继续使用轻量 Docker 容器挂载 MySQL 与 Redis 数据目录。
 
 ## 1. 改造目标
 
@@ -14,14 +14,14 @@
 - 最小用户、登录、Session 和空间权限体系。
 - 通用流程控制节点与 Mirap 自定义节点。
 - MySQL、Redis 和本地文件存储。
-- 后端和前端均可在本地直接启动，不要求 Docker。
+- 后端和前端均可在本地直接启动；MySQL/Redis 由轻量 Docker 容器提供，并通过挂载目录持久化数据。
 
 最终需要移除：
 
 - MinIO、Elasticsearch、Milvus、etcd、NSQ、RocketMQ、Kafka 等基础设施依赖。
 - AI 模型、Embedding、知识库、OCR、Rerank、NL2SQL 等能力。
 - Agent、Plugin、Marketplace、Search、Connector、ChatFlow 等业务模块。
-- 开发启动过程对 `docker/.env`、Docker Compose 和全量前端构建的依赖。
+- 开发启动过程对 `docker/.env`、Coze 全量 Docker Compose、MinIO/ES/Milvus/etcd/MQ 容器和全量前端构建的依赖。
 
 ## 2. 总体策略
 
@@ -216,6 +216,23 @@ Mirap 节点：
 - NSQ、RocketMQ、Kafka、Pulsar、NATS。
 
 工作流创建和发布过程中原有的资源搜索事件应改为 No-op，或者从 workflow-only 应用服务中移除。
+
+### 5.4 开发期 Docker 边界
+
+继续保留轻量 Docker 作为 MySQL/Redis 的本地运行载体，避免在阶段 8-10 同时迁移数据库运行方式和业务代码。
+
+保留：
+
+- `make workflow-middleware` 启动独立 MySQL/Redis 容器。
+- MySQL 数据目录挂载到 `docker/data-workflow/mysql`。
+- Redis 数据目录挂载到 `docker/data-workflow/redis`。
+- workflow-only 服务通过 `backend/.env.workflow` 连接 `127.0.0.1:3307` 和 `127.0.0.1:6380`。
+
+禁止重新引入：
+
+- Coze 全量 `docker compose up` 作为日常开发前置条件。
+- MinIO、Elasticsearch、Milvus、etcd、NSQ、RocketMQ、Kafka、Pulsar、NATS 等容器。
+- 依赖 `docker/.env` 的后端启动流程。
 
 ## 6. MinIO 替代设计
 
@@ -680,12 +697,14 @@ frontend/apps/workflow-studio
 
 预计：4～7 天。
 
+调整后的目标：删除 Coze 非工作流后端能力与外部基础设施 SDK，但保留 workflow-only 服务对 Docker MySQL/Redis 的连接能力。阶段 8 不再追求完全脱离 Docker，只要求后端二进制运行时不依赖 MySQL/Redis 之外的中间件。
+
 待删除领域：
 
 - knowledge、plugin、app、singleagent。
 - conversation、search、connector。
 - modelmgr、prompt、shortcutcmd。
-- memory 中不需要的资源数据库能力。
+- memory 中不需要的资源数据库能力；如果 Mirap 工作流确认不再保留数据库节点，则进一步删除 database node 的运行依赖，只保留变量能力。
 
 待删除基础设施：
 
@@ -694,34 +713,57 @@ frontend/apps/workflow-studio
 - Code Runner（如确认不保留）。
 - TOS、S3、MinIO 的具体实现。
 
+执行顺序：
+
+1. 固定 workflow-only 入口为默认后端入口，避免继续从生成路由拉入全量 handler。
+2. 先删除非 workflow API handler、生成 router 和全量 application 装配。
+3. 再删除不会被 workflow-only 编译链引用的 application/domain/crossdomain 包。
+4. 将 workflow 应用层中的资源事件发布、插件复制、知识库复制、LLM function-call 详情等兼容逻辑改为 no-op 或移除。
+5. 收缩 workflow 节点注册和静态 import，确保隐藏节点不再拉入 LLM、Plugin、Knowledge、Conversation、CodeRunner 等实现。
+6. 删除 ES/Milvus/MQ/模型/云存储 SDK 对应 infra 实现。
+7. 执行依赖清理和验证。
+
 然后执行：
 
 ```bash
 cd backend
 go mod tidy
-go test ./...
+go test ./cmd/workflow-server ./api/workflow ./api/handler/coze ./application/workflow ./application/workflowapp
 ```
 
 完成标准：
 
 - `go.mod` 不再包含 Milvus、Elasticsearch、RocketMQ、NSQ、模型 SDK 和 MinIO SDK。
-- 后端全量测试通过。
-- 后端二进制运行时只依赖 MySQL、Redis 和系统网络。
+- workflow-only 服务链测试通过。
+- 后端二进制运行时只依赖 MySQL、Redis、本地文件系统和系统网络。
+- `make workflow-middleware` 启动的 Docker MySQL/Redis 仍可被 `make workflow-server` 使用。
+- 暂不要求全量 `go test ./...` 通过；被删除模块的旧单测应随模块移除，保留模块的 MySQL 集成测试可在阶段 9 的 Docker 中间件环境中单独验证。
 
-### 阶段 9：建立无 Docker 开发环境
+### 阶段 9：固化轻量 Docker 开发环境
 
 预计：2～3 天。
+
+状态（2026-07-13）：完成。已将 `dev-server`、`dev-web`、`test`、`build` 标准入口接到现有 workflow-only 命令；新增 `docs/mirap-workflow-dev-environment.md` 记录轻量 Docker MySQL/Redis、备份恢复、空库重建和端口排障流程。已验证 `make workflow-middleware` 启动的 MySQL/Redis 均 Healthy，`make workflow-migrate` 幂等通过（Applied=0、Skipped=4、Tables=11），`make build`、`make test` 和 `make workflow-smoke` 均通过。`make dev-server` 可启动 workflow-only 后端并监听 `:8889`；启动前曾发现旧 `workflow-server` 残留进程占用端口，已通过 `lsof` 和 `kill` 清理。`make dev-web` 可进入 Rsbuild 启动流程；本轮因已有 `node` 进程占用 `:5174` 而退出，`curl -I http://127.0.0.1:5174` 返回 200，说明前端 dev server 已在运行。已完成破坏性空库演练：备份 MySQL dump 与 `docker/data-workflow` tar 包，执行 `make workflow-down`，清空 `docker/data-workflow/mysql` 与 `docker/data-workflow/redis`，重新 `make workflow-middleware` 后 `make workflow-migrate` 成功（Applied=4、Skipped=0、Tables=11），恢复 SQL 备份后再次执行 `make workflow-smoke` 通过。
 
 提供：
 
 ```bash
-make init
-make migrate
+make workflow-env
+make workflow-middleware
+make workflow-migrate
 make dev-server
 make dev-web
 make test
 make build
 ```
+
+开发环境边界：
+
+- `workflow-middleware` 只启动 MySQL 和 Redis 两个容器。
+- MySQL/Redis 必须挂载到仓库内独立数据目录，便于重启后保留数据。
+- `workflow-migrate` 使用精简 schema 初始化或增量迁移 workflow-only 数据库。
+- 后端、前端和 smoke 测试不读取 Coze 全量 `docker/.env`。
+- 日常开发不启动 MinIO、ES、Milvus、etcd、MQ 或 Coze server 容器。
 
 `make dev-server` 不得：
 
@@ -729,7 +771,7 @@ make build
 - 全量执行 goimports。
 - 复制完整平台配置。
 - 读取 `docker/.env`。
-- 启动 Docker 中间件。
+- 启动 Coze 全量 Docker 中间件。
 - 删除整个构建目录。
 
 建议使用 `air` 监听 Go 源码：
@@ -750,7 +792,9 @@ exclude_dir = ["storage", "tmp", "testdata"]
 - 修改 Go 文件后自动重启。
 - 修改 React 文件后热更新。
 - 日常开发不需要执行原来的 `make server`。
-- 开发文档中不存在必需的 Docker 步骤。
+- 日常开发只需要轻量 MySQL/Redis Docker 容器，不需要 Coze 全量 Docker Compose。
+- 空库场景可通过删除 `docker/data-workflow/mysql` 后重启 `make workflow-middleware` 自动初始化。
+- `make workflow-smoke` 在 Docker MySQL/Redis 挂载环境下通过。
 
 ### 阶段 10：数据迁移与切换
 
@@ -758,16 +802,19 @@ exclude_dir = ["storage", "tmp", "testdata"]
 
 迁移顺序：
 
-1. 用户和空间。
-2. 工作流元信息。
-3. 工作流草稿。
-4. 工作流发布版本。
-5. 工作流引用。
-6. 可选执行历史。
-7. 将 MinIO 中仍需保留的图标和上传文件导出到本地 storage。
-8. 校验对象 key 与新 URL。
-9. 抽样重新打开历史画布。
-10. 新旧服务并行验证。
+1. 准备目标 Docker MySQL 数据库，确认挂载目录、端口和字符集。
+2. 执行 workflow-only schema 初始化或迁移。
+3. 迁移用户和空间。
+4. 迁移工作流元信息。
+5. 迁移工作流草稿。
+6. 迁移工作流发布版本。
+7. 迁移工作流引用。
+8. 可选迁移执行历史。
+9. 将 MinIO 中仍需保留的图标和上传文件导出到本地 storage。
+10. 校验对象 key 与新 URL。
+11. 抽样重新打开历史画布。
+12. 新旧服务并行验证。
+13. 固化 Docker MySQL/Redis 数据备份与恢复步骤。
 
 数据校验：
 
@@ -780,13 +827,21 @@ latest_version 能在 workflow_version 中找到
 所有 Mirap 节点 type 均在新节点目录注册
 ```
 
+切换标准：
+
+- 新服务连接目标 Docker MySQL/Redis 后可完成创建、保存、重新打开、发布和执行。
+- 迁移后的本地 storage 图标与上传文件 URL 可访问。
+- 备份目标 MySQL 挂载目录或导出 SQL 后，可以在空目录中恢复出一致数据。
+- 生产或准生产部署仍可选择托管 MySQL/Redis；本地开发默认继续使用 Docker MySQL/Redis。
+
 ## 8. 里程碑
 
 ### M1：轻量后端可启动
 
 - 新仓库建立。
 - workflow-only 服务完成。
-- 只依赖 MySQL、Redis。
+- 运行时只依赖 MySQL、Redis、本地文件系统和系统网络。
+- 本地开发通过轻量 Docker MySQL/Redis 提供中间件。
 - CRUD、保存重开与发布通过。
 
 ### M2：MinIO 完全移除
@@ -813,15 +868,16 @@ latest_version 能在 workflow_version 中找到
 
 - 历史数据迁移完成。
 - 新旧核心行为一致。
-- 无 Docker 开发文档完成。
+- 轻量 Docker MySQL/Redis 开发文档完成。
 - 生产部署和回滚方案完成。
 
 ## 9. 最终验收清单
 
-- 新开发环境只安装 Go、Node、MySQL、Redis 即可运行。
-- 不需要 Docker 和 Docker Compose。
-- 不需要 MinIO、ES、Milvus、etcd 和 MQ。
+- 新开发环境安装 Go、Node、Docker 即可运行；MySQL/Redis 由仓库提供的轻量 Docker 配置启动。
+- 不需要 Coze 全量 Docker Compose。
+- 不需要 MinIO、ES、Milvus、etcd 和 MQ 容器。
 - 不配置任何 AI 模型也能启动。
+- `make workflow-middleware` 可启动并复用挂载数据目录中的 MySQL/Redis。
 - 创建工作流成功。
 - 自动保存和手动保存成功。
 - 页面重新打开后画布一致。
@@ -833,6 +889,7 @@ latest_version 能在 workflow_version 中找到
 - 非法路径和越权文件访问被拒绝。
 - 前端不再依赖 Agent、知识库、插件和聊天页面。
 - 后端 `go.mod` 不再包含被移除基础设施的 SDK。
+- MySQL/Redis 数据备份、清空重建和恢复流程有文档记录。
 
 ## 10. 工期与主要风险
 
@@ -847,6 +904,7 @@ latest_version 能在 workflow_version 中找到
 - 独立前端应用壳：5～8 天。
 - 前端 workspace 裁剪：5～10 天。
 - 后端物理删除与依赖收缩：4～7 天。
+- 轻量 Docker 开发环境固化：1～2 天。
 - 数据迁移和最终切换：3～5 天。
 
 主要风险：
@@ -857,5 +915,6 @@ latest_version 能在 workflow_version 中找到
 4. 工作流创建、保存和发布存在用户空间、对象存储和资源事件的隐式依赖。
 5. 历史画布兼容问题通常只在保存后重新打开时暴露。
 6. 本地文件存储不适合无共享磁盘的多实例部署。
+7. Docker MySQL/Redis 挂载目录需要明确备份、清空重建和权限处理方式，否则迁移验证容易受旧数据污染。
 
 实施时优先完成 M1 和 M2，确认新后端与本地存储稳定后，再开始大规模清理前端 workspace 包。

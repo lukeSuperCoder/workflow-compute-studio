@@ -30,7 +30,6 @@ import (
 
 	cloudworkflow "github.com/coze-dev/coze-studio/backend/api/model/workflow"
 	"github.com/coze-dev/coze-studio/backend/application/base/ctxutil"
-	"github.com/coze-dev/coze-studio/backend/bizpkg/llm/modelbuilder"
 	workflowModel "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/model"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
@@ -71,8 +70,8 @@ func NewWorkflowService(repo workflow.Repository) workflow.Service {
 }
 
 func NewWorkflowRepository(idgen idgen.IDGenerator, db *gorm.DB, redis cache.Cmdable, tos storage.Storage,
-	cpStore einoCompose.CheckPointStore, chatModel modelbuilder.BaseChatModel, cfg workflow.WorkflowConfig) (workflow.Repository, error) {
-	return repo.NewRepository(idgen, db, redis, tos, cpStore, chatModel, cfg)
+	cpStore einoCompose.CheckPointStore, cfg workflow.WorkflowConfig) (workflow.Repository, error) {
+	return repo.NewRepository(idgen, db, redis, tos, cpStore, cfg)
 }
 
 func (i *impl) ListNodeMeta(_ context.Context, nodeTypes map[entity.NodeType]bool) (map[string][]*entity.NodeTypeMeta, []entity.Category, error) {

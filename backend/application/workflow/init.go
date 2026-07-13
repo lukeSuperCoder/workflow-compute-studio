@@ -28,16 +28,11 @@ import (
 	"github.com/cloudwego/eino/compose"
 	"gorm.io/gorm"
 
-	"github.com/coze-dev/coze-studio/backend/bizpkg/llm/modelbuilder"
-	knowledge "github.com/coze-dev/coze-studio/backend/domain/knowledge/service"
 	dbservice "github.com/coze-dev/coze-studio/backend/domain/memory/database/service"
 	variables "github.com/coze-dev/coze-studio/backend/domain/memory/variables/service"
-	plugin "github.com/coze-dev/coze-studio/backend/domain/plugin/service"
-	search "github.com/coze-dev/coze-studio/backend/domain/search/service"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/config"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
-	wrapPlugin "github.com/coze-dev/coze-studio/backend/domain/workflow/plugin"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/service"
 	"github.com/coze-dev/coze-studio/backend/infra/cache"
 	"github.com/coze-dev/coze-studio/backend/infra/coderunner"
@@ -47,19 +42,16 @@ import (
 )
 
 type ServiceComponents struct {
-	IDGen                    idgen.IDGenerator
-	DB                       *gorm.DB
-	Cache                    cache.Cmdable
-	DatabaseDomainSVC        dbservice.Database
-	VariablesDomainSVC       variables.Variables
-	PluginDomainSVC          plugin.PluginService
-	KnowledgeDomainSVC       knowledge.Knowledge
-	DomainNotifier           search.ResourceEventBus
-	Tos                      storage.Storage
-	ImageX                   imagex.ImageX
-	CPStore                  compose.CheckPointStore
-	CodeRunner               coderunner.Runner
-	WorkflowBuildInChatModel modelbuilder.BaseChatModel
+	IDGen              idgen.IDGenerator
+	DB                 *gorm.DB
+	Cache              cache.Cmdable
+	DatabaseDomainSVC  dbservice.Database
+	VariablesDomainSVC variables.Variables
+	DomainNotifier     any
+	Tos                storage.Storage
+	ImageX             imagex.ImageX
+	CPStore            compose.CheckPointStore
+	CodeRunner         coderunner.Runner
 
 	// NodeSet, when non-nil, restricts node adaptor registration and the
 	// node_type catalog to the whitelisted node types. Used by the
@@ -103,7 +95,7 @@ func InitService(_ context.Context, components *ServiceComponents) (*Application
 	}
 
 	workflowRepo, err := service.NewWorkflowRepository(components.IDGen, components.DB, components.Cache,
-		components.Tos, components.CPStore, components.WorkflowBuildInChatModel, cfg)
+		components.Tos, components.CPStore, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +103,6 @@ func InitService(_ context.Context, components *ServiceComponents) (*Application
 	workflow.SetRepository(workflowRepo)
 
 	workflowDomainSVC := service.NewWorkflowService(workflowRepo)
-	wrapPlugin.SetOSS(components.Tos)
 
 	coderunner.SetCodeRunner(components.CodeRunner)
 	callbacks.AppendGlobalHandlers(service.GetTokenCallbackHandler())

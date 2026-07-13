@@ -31,14 +31,12 @@ import (
 	"github.com/coze-dev/coze-studio/backend/api/model/workflow"
 	"github.com/coze-dev/coze-studio/backend/application/base/ctxutil"
 	"github.com/coze-dev/coze-studio/backend/bizpkg/debugutil"
-	crossagentrun "github.com/coze-dev/coze-studio/backend/crossdomain/agentrun"
 
 	crossconversation "github.com/coze-dev/coze-studio/backend/crossdomain/conversation"
 	crossmessage "github.com/coze-dev/coze-studio/backend/crossdomain/message"
 	message "github.com/coze-dev/coze-studio/backend/crossdomain/message/model"
 	crossupload "github.com/coze-dev/coze-studio/backend/crossdomain/upload"
 	workflowModel "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/model"
-	agententity "github.com/coze-dev/coze-studio/backend/domain/conversation/agentrun/entity"
 	"github.com/coze-dev/coze-studio/backend/domain/permission"
 	"github.com/coze-dev/coze-studio/backend/domain/upload/service"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
@@ -641,18 +639,7 @@ func (w *ApplicationService) OpenAPIChatFlowRun(ctx context.Context, req *workfl
 		sectionID = sID
 	}
 
-	runRecord, err := crossagentrun.DefaultSVC().Create(ctx, &agententity.AgentRunMeta{
-		AgentID:        bizID,
-		ConversationID: conversationID,
-		UserID:         strconv.FormatInt(userID, 10),
-		ConnectorID:    connectorID,
-		SectionID:      sectionID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	roundID := runRecord.ID
+	roundID := time.Now().UnixNano()
 
 	userMessage, err := toConversationMessage(ctx, bizID, conversationID, userID, roundID, sectionID, message.MessageTypeQuestion, lastUserMessage)
 	if err != nil {
@@ -1219,26 +1206,14 @@ func (w *ApplicationService) makeChatFlowUserInput(ctx context.Context, message 
 func makeChatFlowHistoryMessages(ctx context.Context, bizID, conversationID, userID, sectionID, connectorID int64, messages []*workflow.EnterMessage) ([]*message.Message, error) {
 
 	var (
-		rID       int64
-		err       error
-		runRecord *agententity.RunRecordMeta
+		rID int64
 	)
 
 	historyMessages := make([]*message.Message, 0, len(messages))
 
 	for _, msg := range messages {
 		if msg.Role == userRole {
-			runRecord, err = crossagentrun.DefaultSVC().Create(ctx, &agententity.AgentRunMeta{
-				AgentID:        bizID,
-				ConversationID: conversationID,
-				UserID:         strconv.FormatInt(userID, 10),
-				ConnectorID:    connectorID,
-				SectionID:      sectionID,
-			})
-			if err != nil {
-				return nil, err
-			}
-			rID = runRecord.ID
+			rID = time.Now().UnixNano()
 		} else if msg.Role == assistantRole {
 			if rID == 0 {
 				continue

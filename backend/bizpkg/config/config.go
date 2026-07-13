@@ -24,7 +24,6 @@ import (
 	"github.com/coze-dev/coze-studio/backend/api/model/admin/config"
 	"github.com/coze-dev/coze-studio/backend/bizpkg/config/base"
 	"github.com/coze-dev/coze-studio/backend/bizpkg/config/knowledge"
-	"github.com/coze-dev/coze-studio/backend/bizpkg/config/modelmgr"
 	"github.com/coze-dev/coze-studio/backend/infra/storage"
 )
 
@@ -53,7 +52,6 @@ const (
 type Config struct {
 	base      *base.BaseConfig
 	knowledge *knowledge.KnowledgeConfig
-	model     *modelmgr.ModelConfig
 }
 
 var shardConfig *Config
@@ -64,13 +62,6 @@ func Init(ctx context.Context, db *gorm.DB, oss storage.Storage) error {
 		knowledge: knowledge.NewKnowledgeConfig(db),
 	}
 
-	m, err := modelmgr.Init(ctx, db, oss)
-	if err != nil {
-		return err
-	}
-
-	shardConfig.model = m
-
 	return nil
 }
 
@@ -80,8 +71,4 @@ func Base() *base.BaseConfig {
 
 func Knowledge() *knowledge.KnowledgeConfig {
 	return shardConfig.knowledge
-}
-
-func ModelConf() *modelmgr.ModelConfig {
-	return shardConfig.model
 }

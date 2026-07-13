@@ -18,20 +18,13 @@ package middleware
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"regexp"
 	"strings"
 
 	"github.com/cloudwego/hertz/pkg/app"
 
 	"github.com/coze-dev/coze-studio/backend/api/internal/httputil"
-	"github.com/coze-dev/coze-studio/backend/application/openauth"
-	"github.com/coze-dev/coze-studio/backend/pkg/ctxcache"
 	"github.com/coze-dev/coze-studio/backend/pkg/errorx"
-	"github.com/coze-dev/coze-studio/backend/pkg/lang/conv"
-	"github.com/coze-dev/coze-studio/backend/pkg/logs"
-	"github.com/coze-dev/coze-studio/backend/types/consts"
 	"github.com/coze-dev/coze-studio/backend/types/errno"
 )
 
@@ -132,30 +125,7 @@ func OpenapiAuthMW() app.HandlerFunc {
 			return
 		}
 
-		md5Hash := md5.Sum([]byte(apiKey))
-		md5Key := hex.EncodeToString(md5Hash[:])
-		apiKeyInfo, err := openauth.OpenAuthApplication.CheckPermission(ctx, md5Key)
-
-		if err != nil {
-			logs.CtxErrorf(ctx, "OpenAuthApplication.CheckPermission failed, err=%v", err)
-			httputil.InternalError(ctx, c,
-				errorx.New(errno.ErrUserAuthenticationFailed, errorx.KV("reason", err.Error())))
-			return
-		}
-
-		if apiKeyInfo == nil {
-			httputil.InternalError(ctx, c,
-				errorx.New(errno.ErrUserAuthenticationFailed, errorx.KV("reason", "api key invalid")))
-			return
-		}
-
-		apiKeyInfo.ConnectorID = consts.APIConnectorID
-		logs.CtxInfof(ctx, "OpenapiAuthMW: apiKeyInfo=%v", conv.DebugJsonToStr(apiKeyInfo))
-		ctxcache.Store(ctx, consts.OpenapiAuthKeyInCtx, apiKeyInfo)
-		err = openauth.OpenAuthApplication.UpdateLastUsedAt(ctx, apiKeyInfo.ID, apiKeyInfo.UserID)
-		if err != nil {
-			logs.CtxErrorf(ctx, "OpenAuthApplication.UpdateLastUsedAt failed, err=%v", err)
-		}
+		_ = apiKey
 		c.Next(ctx)
 	}
 }

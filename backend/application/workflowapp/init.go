@@ -38,7 +38,6 @@ import (
 	crossworkflow "github.com/coze-dev/coze-studio/backend/crossdomain/workflow"
 	workflowImpl "github.com/coze-dev/coze-studio/backend/crossdomain/workflow/impl"
 	searchentity "github.com/coze-dev/coze-studio/backend/domain/search/entity"
-	searchsvc "github.com/coze-dev/coze-studio/backend/domain/search/service"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity"
 	"github.com/coze-dev/coze-studio/backend/infra/cache"
 	redisImpl "github.com/coze-dev/coze-studio/backend/infra/cache/impl/redis"
@@ -194,5 +193,3 @@ type noopResourceEventBus struct{}
 func (noopResourceEventBus) PublishResources(context.Context, *searchentity.ResourceDomainEvent) error {
 	return nil
 }
-
-var _ searchsvc.ResourceEventBus = noopResourceEventBus{}

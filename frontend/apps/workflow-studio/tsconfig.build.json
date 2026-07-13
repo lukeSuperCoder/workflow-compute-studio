@@ -1,0 +1,67 @@
+{
+  "extends": "@coze-arch/ts-config/tsconfig.web.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "jsx": "react-jsx",
+    "lib": ["DOM", "ESNext"],
+    "module": "ESNext",
+    "isolatedModules": true,
+    "target": "ES2020",
+    "moduleResolution": "bundler",
+    "tsBuildInfoFile": "dist/tsconfig.build.tsbuildinfo"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    {
+      "path": "../../config/eslint-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../config/postcss-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../config/rsbuild-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../config/stylelint-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../config/tailwind-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../config/ts-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../config/vitest-config/tsconfig.build.json"
+    },
+    {
+      "path": "../../infra/plugins/import-watch-loader/tsconfig.build.json"
+    },
+    {
+      "path": "../../infra/plugins/pkg-root-webpack-plugin/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/arch/bot-api/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/arch/bot-env/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/arch/bot-flags/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/arch/bot-typings/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/arch/i18n/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/arch/responsive-kit/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/workflow/adapter/playground/tsconfig.build.json"
+    }
+  ]
+}

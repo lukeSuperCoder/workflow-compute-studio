@@ -898,6 +898,11 @@
       "tags": ["level-4"]
     },
     {
+      "packageName": "@mirap/workflow-studio-app",
+      "projectFolder": "frontend/apps/workflow-studio",
+      "tags": ["level-4", "team-automation"]
+    },
+    {
       "packageName": "@coze-arch/rsbuild-config",
       "projectFolder": "frontend/config/rsbuild-config",
       "tags": ["level-1"]

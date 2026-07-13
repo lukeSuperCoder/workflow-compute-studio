@@ -1,4 +1,4 @@
-.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-server workflow-smoke workflow-down
+.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-server workflow-web workflow-smoke workflow-go-test workflow-down
 
 # 定义脚本路径
 SCRIPTS_DIR := ./scripts
@@ -153,6 +153,10 @@ workflow-server: workflow-env
 	@echo "Start workflow-only backend server"
 	@cd backend && APP_ENV=workflow go run ./cmd/workflow-server
 
+workflow-web:
+	@echo "Start Mirap workflow frontend"
+	@cd frontend/apps/workflow-studio && npm run dev
+
 workflow-smoke: workflow-env
 	@echo "Run workflow-only API smoke test"
 	@scripts/workflow_smoke_test.sh
@@ -191,6 +195,7 @@ help:
 	@echo "  workflow-middleware - Start isolated workflow MySQL and Redis."
 	@echo "  workflow-migrate - Apply workflow database migrations to the running MySQL container."
 	@echo "  workflow-server  - Start workflow-only backend with APP_ENV=workflow."
+	@echo "  workflow-web     - Start Mirap workflow frontend on port 5174."
 	@echo "  workflow-smoke   - Run workflow-only API smoke test against LISTEN_ADDR."
 	@echo "  workflow-go-test - Run workflow Go unit tests with mockey-compatible flags."
 	@echo "  workflow-down    - Stop isolated workflow MySQL and Redis."

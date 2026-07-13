@@ -653,6 +653,8 @@ frontend/apps/workflow-studio
 
 预计：5～10 天。
 
+状态（2026-07-13）：阶段 7 已开始。第一步先处理 `frontend/apps/workflow-studio` 的入口加载边界：编辑器路由改为 route-level lazy import，`@coze-arch/i18n` 初始化延迟到进入编辑器前，避免登录页和列表页提前加载工作流画布运行时。`@coze-arch/bot-flags` 仍需在应用启动时初始化为空 flags，因为部分 workflow 模块在模块求值阶段调用 `getFlags()`。轻量应用壳临时拦截 `/api/playground_api/space/list`，用当前 session 的 `spaceId` 返回旧 SpaceStore 需要的最小空间列表，避免 workflow-only 后端补回完整 Playground 空间 API。当前 `@mirap/workflow-studio-app` workspace 依赖闭包基线为 206 个包，其中 Agent IDE 28、Knowledge UI 12、Database UI 6、Plugin UI 6、Chat UI 13、DevOps 5、Project IDE 6；后续批量删除应优先从 `@coze-workflow/playground` 及其适配器的实际 import 链剥离这些跨业务域依赖。
+
 推荐删除顺序：
 
 1. Agent IDE。

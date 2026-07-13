@@ -27,7 +27,7 @@ import (
 	"github.com/coze-dev/coze-studio/backend/infra/storage"
 )
 
-func Register(r *server.Hertz, st storage.Storage) {
+func Register(r *server.Hertz, st storage.Storage, authService AuthService) {
 	r.GET("/healthz", func(_ context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusOK, map[string]string{"status": "ok"})
 	})
@@ -36,6 +36,12 @@ func Register(r *server.Hertz, st storage.Storage) {
 	r.GET("/assets/*path", files.GetPublicAsset)
 
 	api := r.Group("/api")
+	auth := NewAuthHandler(authService)
+	authAPI := api.Group("/auth")
+	authAPI.POST("/login", auth.Login)
+	authAPI.GET("/session", auth.Session)
+	authAPI.POST("/logout", auth.Logout)
+
 	fileAPI := api.Group("/files")
 	fileAPI.POST("/upload", files.Upload)
 	fileAPI.GET("/*path", files.GetPrivateFile)

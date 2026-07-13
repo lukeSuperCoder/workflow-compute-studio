@@ -94,7 +94,7 @@ func startHTTPServer(deps *workflowapp.Dependencies) {
 	s.Use(middleware.SessionAuthMW())
 	s.Use(middleware.I18nMW())
 
-	workflowrouter.Register(s, deps.Storage)
+	workflowrouter.Register(s, deps.Storage, deps.User.DomainSVC)
 	s.Spin()
 }
 

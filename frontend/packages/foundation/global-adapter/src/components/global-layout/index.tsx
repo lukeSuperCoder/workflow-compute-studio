@@ -33,10 +33,12 @@ import { LocaleProvider } from '@coze-arch/bot-semi';
 
 import { GlobalLayoutComposed } from '@/components/global-layout-composed';
 
+import { resolveCurrentLocale } from './locale';
+
 export const GlobalLayout: FC = () => {
   const userInfo = useUserInfo();
   const update = useUpdate();
-  const currentLocale = userInfo?.locale ?? navigator.language ?? 'en-US';
+  const currentLocale = resolveCurrentLocale(userInfo?.locale, I18n.language);
 
   // For historical reasons, en-US needs to be converted to en.
   const transformedCurrentLocale =

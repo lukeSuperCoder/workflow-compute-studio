@@ -22,6 +22,7 @@ import { pullFeatureFlags, type FEATURE_FLAGS } from '@coze-arch/bot-flags';
 import { App } from './app';
 import './global.less';
 import './index.less';
+import { getInitialLanguage } from './utils/initial-language';
 
 const initFlags = () => {
   pullFeatureFlags({
@@ -35,9 +36,7 @@ const main = () => {
   initFlags();
   // Initialize i18n
   initI18nInstance({
-    lng: (localStorage.getItem('i18next') ?? (IS_OVERSEA ? 'en' : 'zh-CN')) as
-      | 'en'
-      | 'zh-CN',
+    lng: getInitialLanguage(localStorage),
   });
   // Import mdbox styles dynamically
   dynamicImportMdBoxStyle();

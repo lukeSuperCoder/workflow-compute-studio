@@ -105,11 +105,11 @@ export enum StandardNodeType {
   JsonStringify = '58',
   JsonParser = '59',
   MirapAreaShipExtractor = '1001',
-  MirapMMSIIntersection = '1002',
-  MirapMMSIUnion = '1003',
-  MirapMMSIDifference = '1004',
-  MirapStayCalculation = '1005',
-  MirapHoverDetail = '1006',
+  MirapStayCalculation = '1002',
+  MirapHoverDetail = '1003',
+  MirapMMSIIntersection = '2001',
+  MirapMMSIUnion = '2002',
+  MirapMMSIDifference = '2003',
 }
 
 /**

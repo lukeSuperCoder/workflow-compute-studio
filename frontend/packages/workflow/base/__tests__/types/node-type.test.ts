@@ -44,6 +44,15 @@ describe('node-type', () => {
       const nodeTypeValues = Object.values(StandardNodeType);
       expect(nodeTypeValues).not.toContain('33'); // TriggerCreate
     });
+
+    it('应该为 Mirap 自定义节点使用分组后的稳定 ID', () => {
+      expect(StandardNodeType.MirapAreaShipExtractor).toBe('1001');
+      expect(StandardNodeType.MirapStayCalculation).toBe('1002');
+      expect(StandardNodeType.MirapHoverDetail).toBe('1003');
+      expect(StandardNodeType.MirapMMSIIntersection).toBe('2001');
+      expect(StandardNodeType.MirapMMSIUnion).toBe('2002');
+      expect(StandardNodeType.MirapMMSIDifference).toBe('2003');
+    });
   });
 
   describe('NODE_ORDER', () => {

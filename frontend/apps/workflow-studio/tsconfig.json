@@ -5,6 +5,7 @@
   },
   "include": [
     "src",
+    "__tests__",
     "vitest.config.ts",
     "tailwind.config.ts",
     "rsbuild.config.ts"

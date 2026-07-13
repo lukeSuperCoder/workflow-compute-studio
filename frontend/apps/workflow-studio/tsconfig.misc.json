@@ -11,7 +11,13 @@
     "moduleResolution": "bundler",
     "types": ["vitest/globals", "node"]
   },
-  "include": ["vitest.config.ts", "tailwind.config.ts", "rsbuild.config.ts"],
+  "include": [
+    "__tests__/**/*.ts",
+    "__tests__/**/*.tsx",
+    "vitest.config.ts",
+    "tailwind.config.ts",
+    "rsbuild.config.ts"
+  ],
   "exclude": ["./dist"],
   "references": [
     {

@@ -15,6 +15,7 @@
  */
 
 import type {
+  AuthUser,
   ReleasedWorkflowItem,
   WorkflowItem,
   WorkflowSession,
@@ -45,6 +46,22 @@ interface ReleasedWorkflowData {
 
 const DEFAULT_ICON_URI = 'default_icon/default_workflow_icon.png';
 
+function toWorkflowSession(user: AuthUser): WorkflowSession {
+  return {
+    userId: user.user_id,
+    userName: user.name,
+    spaceId: user.space_id,
+  };
+}
+
+async function readApiResponse<T>(response: Response, path: string) {
+  const payload = (await response.json()) as ApiResponse<T>;
+  if (!response.ok || (payload.code ?? 0) !== 0) {
+    throw new Error(payload.msg || payload.error || `Request failed: ${path}`);
+  }
+  return payload.data as T;
+}
+
 async function postJson<T>(path: string, body: Record<string, unknown>) {
   const response = await fetch(path, {
     method: 'POST',
@@ -55,13 +72,36 @@ async function postJson<T>(path: string, body: Record<string, unknown>) {
     body: JSON.stringify(body),
   });
 
-  const payload = (await response.json()) as ApiResponse<T>;
+  return readApiResponse<T>(response, path);
+}
 
-  if (!response.ok || (payload.code ?? 0) !== 0) {
-    throw new Error(payload.msg || payload.error || `Request failed: ${path}`);
-  }
+export async function login(email: string, password: string) {
+  const path = '/api/auth/login';
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
+  });
+  return toWorkflowSession(await readApiResponse<AuthUser>(response, path));
+}
 
-  return payload.data as T;
+export async function restoreSession() {
+  const path = '/api/auth/session';
+  const response = await fetch(path, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  return toWorkflowSession(await readApiResponse<AuthUser>(response, path));
+}
+
+export async function logout() {
+  const path = '/api/auth/logout';
+  const response = await fetch(path, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  await readApiResponse<undefined>(response, path);
 }
 
 export async function getHealth() {

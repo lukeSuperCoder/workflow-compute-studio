@@ -18,12 +18,6 @@ import type { WorkflowSession } from './types';
 
 const STORAGE_KEY = 'mirap.workflow.session';
 
-const DEFAULT_SESSION: WorkflowSession = {
-  userName: 'Workflow Developer',
-  userId: '10001',
-  spaceId: '999999',
-};
-
 export function readSession(): WorkflowSession | null {
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) {
@@ -46,14 +40,12 @@ export function readSession(): WorkflowSession | null {
   return null;
 }
 
-export function createDefaultSession(overrides?: Partial<WorkflowSession>) {
-  const session = {
-    ...DEFAULT_SESSION,
-    ...overrides,
-  };
+export function saveSession(session: WorkflowSession) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   return session;
 }
+
+export const createDefaultSession = saveSession;
 
 export function clearSession() {
   window.localStorage.removeItem(STORAGE_KEY);

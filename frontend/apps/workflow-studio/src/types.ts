@@ -54,3 +54,11 @@ export interface WorkflowSession {
   userId: string;
   spaceId: string;
 }
+
+export interface AuthUser {
+  user_id: string;
+  name: string;
+  email: string;
+  space_id: string;
+  space_name: string;
+}

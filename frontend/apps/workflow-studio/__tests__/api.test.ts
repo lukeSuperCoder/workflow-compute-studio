@@ -16,7 +16,21 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getHealth, login, logout, restoreSession } from '../src/api';
+import {
+  createWorkflow,
+  getHealth,
+  listReleasedWorkflows,
+  listWorkflows,
+  login,
+  logout,
+  restoreSession,
+} from '../src/api';
+
+const session = {
+  userId: '42',
+  userName: 'Luke',
+  spaceId: '3',
+};
 
 const authPayload = {
   code: 0,
@@ -84,7 +98,7 @@ describe('workflow auth API', () => {
     });
   });
 
-  it('surfaces the safe server error message', async () => {
+  it('translates the backend invalid-credentials error', async () => {
     vi.stubGlobal(
       'fetch',
       vi
@@ -98,7 +112,46 @@ describe('workflow auth API', () => {
     );
 
     await expect(login('luke@example.com', 'wrong')).rejects.toThrow(
-      'Email or password is incorrect',
+      '邮箱或密码错误',
+    );
+  });
+
+  it('normalizes a rejected network request for workflow lists', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    await expect(listWorkflows(session)).rejects.toThrow(
+      '无法连接到工作流服务，请检查网络后重试',
+    );
+  });
+
+  it('normalizes a non-JSON create response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('<html>Bad gateway</html>', {
+          status: 502,
+          headers: { 'Content-Type': 'text/html' },
+        }),
+      ),
+    );
+
+    await expect(
+      createWorkflow(session, { name: '测试工作流', desc: '描述' }),
+    ).rejects.toThrow('工作流服务返回了无法识别的响应，请稍后重试');
+  });
+
+  it('keeps a usable Chinese server error for released workflow versions', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ code: 403, msg: '没有权限查看该工作流' }, 403),
+        ),
+    );
+
+    await expect(listReleasedWorkflows(session, '123')).rejects.toThrow(
+      '没有权限查看该工作流',
     );
   });
 

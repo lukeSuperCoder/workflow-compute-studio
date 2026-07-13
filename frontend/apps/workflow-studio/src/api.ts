@@ -45,6 +45,11 @@ interface ReleasedWorkflowData {
 }
 
 const DEFAULT_ICON_URI = 'default_icon/default_workflow_icon.png';
+const NETWORK_ERROR_MESSAGE = '无法连接到工作流服务，请检查网络后重试';
+const INVALID_RESPONSE_MESSAGE = '工作流服务返回了无法识别的响应，请稍后重试';
+const KNOWN_SERVER_ERRORS: Record<string, string> = {
+  'email or password is incorrect': '邮箱或密码错误',
+};
 
 function toWorkflowSession(user: AuthUser): WorkflowSession {
   return {
@@ -55,15 +60,44 @@ function toWorkflowSession(user: AuthUser): WorkflowSession {
 }
 
 async function readApiResponse<T>(response: Response, path: string) {
-  const payload = (await response.json()) as ApiResponse<T>;
+  let payload: ApiResponse<T>;
+  try {
+    payload = (await response.json()) as ApiResponse<T>;
+  } catch {
+    throw new Error(INVALID_RESPONSE_MESSAGE);
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    throw new Error(INVALID_RESPONSE_MESSAGE);
+  }
+
   if (!response.ok || (payload.code ?? 0) !== 0) {
-    throw new Error(payload.msg || payload.error || `请求失败：${path}`);
+    const serverMessage = payload.msg || payload.error;
+    const normalizedMessage = serverMessage?.trim();
+    const knownMessage = normalizedMessage
+      ? KNOWN_SERVER_ERRORS[normalizedMessage.toLowerCase()]
+      : undefined;
+    const usableChineseMessage =
+      normalizedMessage && /[\u3400-\u9fff]/u.test(normalizedMessage)
+        ? normalizedMessage
+        : undefined;
+    throw new Error(
+      knownMessage || usableChineseMessage || `请求失败：${path}`,
+    );
   }
   return payload.data as T;
 }
 
+async function request(path: string, init: RequestInit) {
+  try {
+    return await fetch(path, init);
+  } catch {
+    throw new Error(NETWORK_ERROR_MESSAGE);
+  }
+}
+
 async function postJson<T>(path: string, body: Record<string, unknown>) {
-  const response = await fetch(path, {
+  const response = await request(path, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -77,7 +111,7 @@ async function postJson<T>(path: string, body: Record<string, unknown>) {
 
 export async function login(email: string, password: string) {
   const path = '/api/auth/login';
-  const response = await fetch(path, {
+  const response = await request(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -88,7 +122,7 @@ export async function login(email: string, password: string) {
 
 export async function restoreSession() {
   const path = '/api/auth/session';
-  const response = await fetch(path, {
+  const response = await request(path, {
     method: 'GET',
     credentials: 'include',
   });
@@ -97,7 +131,7 @@ export async function restoreSession() {
 
 export async function logout() {
   const path = '/api/auth/logout';
-  const response = await fetch(path, {
+  const response = await request(path, {
     method: 'POST',
     credentials: 'include',
   });
@@ -105,7 +139,7 @@ export async function logout() {
 }
 
 export async function getHealth() {
-  const response = await fetch('/healthz', { credentials: 'include' });
+  const response = await request('/healthz', { credentials: 'include' });
   if (!response.ok) {
     throw new Error('工作流服务当前不可用');
   }

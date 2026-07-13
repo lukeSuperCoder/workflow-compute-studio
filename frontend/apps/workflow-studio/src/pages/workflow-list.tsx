@@ -40,7 +40,7 @@ function formatTime(value: WorkflowItem['update_time']) {
 function statusText(status?: number) {
   switch (status) {
     case 1:
-      return '草稿已阻止';
+      return '草稿受阻';
     case 2:
       return '已就绪';
     case 3:
@@ -255,7 +255,7 @@ function WorkflowTable({
         </tbody>
       </table>
       {loading ? (
-        <div className="table-loading">正在加载工作流...</div>
+        <div className="table-loading">正在加载工作流…</div>
       ) : null}
     </div>
   );
@@ -310,7 +310,7 @@ function CreateWorkflowDialog({
             type="submit"
             disabled={creating || !name.trim()}
           >
-            {creating ? '创建中...' : '创建'}
+            {creating ? '创建中…' : '创建'}
           </button>
         </div>
       </form>

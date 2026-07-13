@@ -78,7 +78,7 @@ export function WorkflowEditorRoute() {
     params.get('workflow_id') !== workflowId ||
     params.get('space_id') !== session.spaceId
   ) {
-    return <div className="loading-screen">正在打开工作流...</div>;
+    return <div className="loading-screen">正在打开工作流…</div>;
   }
 
   return (

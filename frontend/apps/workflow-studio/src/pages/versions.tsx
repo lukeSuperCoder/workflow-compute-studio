@@ -107,7 +107,7 @@ export function VersionsPage() {
           </tbody>
         </table>
         {loading ? (
-          <div className="table-loading">正在加载版本...</div>
+          <div className="table-loading">正在加载版本…</div>
         ) : null}
       </div>
     </section>

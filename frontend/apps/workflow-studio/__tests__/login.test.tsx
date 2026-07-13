@@ -79,7 +79,7 @@ describe('LoginPage', () => {
   it('clears the password and keeps the email after a failed login', async () => {
     const onSignIn = vi
       .fn()
-      .mockRejectedValue(new Error('Email or password is incorrect'));
+      .mockRejectedValue(new Error('邮箱或密码错误'));
     act(() => root.render(<LoginPage onSignIn={onSignIn} />));
 
     const email =
@@ -105,6 +105,6 @@ describe('LoginPage', () => {
 
     expect(email?.value).toBe('luke@example.com');
     expect(password?.value).toBe('');
-    expect(container.textContent).toContain('Email or password is incorrect');
+    expect(container.textContent).toContain('邮箱或密码错误');
   });
 });

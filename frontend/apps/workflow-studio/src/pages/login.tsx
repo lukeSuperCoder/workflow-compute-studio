@@ -97,7 +97,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
             type="submit"
             disabled={submitting}
           >
-            {submitting ? '登录中...' : '登录'}
+            {submitting ? '登录中…' : '登录'}
           </button>
         </form>
       </section>

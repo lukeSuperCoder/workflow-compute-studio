@@ -95,7 +95,7 @@ describe('workflow-studio 中文界面', () => {
   it('应用壳使用中文品牌、空间和恢复状态文案', async () => {
     window.history.replaceState({}, '', '/');
     act(() => root.render(<App />));
-    expect(container.textContent).toBe('正在恢复登录状态...');
+    expect(container.textContent).toBe('正在恢复登录状态…');
 
     await act(async () => {
       await Promise.resolve();
@@ -109,6 +109,16 @@ describe('workflow-studio 中文界面', () => {
   });
 
   it('工作流列表和创建弹窗使用中文文案', async () => {
+    apiMocks.listWorkflows.mockResolvedValue({
+      workflows: [
+        {
+          workflow_id: 'blocked-draft',
+          name: '待处理工作流',
+          status: 1,
+        },
+      ],
+      total: 1,
+    });
     await act(async () => {
       root.render(
         <SessionContext.Provider
@@ -125,7 +135,7 @@ describe('workflow-studio 中文界面', () => {
     });
 
     expect(container.querySelector('h1')?.textContent).toBe('工作流');
-    expect(container.textContent).toContain('暂无工作流');
+    expect(container.textContent).toContain('草稿受阻');
     const createButton = Array.from(container.querySelectorAll('button')).find(
       button => button.textContent === '新建工作流',
     );
@@ -195,5 +205,20 @@ describe('workflow-studio 中文界面', () => {
     expect(html).toContain('<html lang="zh-CN">');
     expect(html).toContain('<title>算子工作流</title>');
     expect(rsbuild).toContain("title: '算子工作流'");
+  });
+
+  it('加载与提交状态统一使用中文省略号', () => {
+    const sourceFiles = [
+      '../src/app.tsx',
+      '../src/pages/login.tsx',
+      '../src/pages/versions.tsx',
+      '../src/pages/workflow-editor-route.tsx',
+      '../src/pages/workflow-list.tsx',
+    ];
+
+    for (const file of sourceFiles) {
+      const source = readFileSync(resolve(__dirname, file), 'utf8');
+      expect(source).not.toMatch(/(?:加载|登录|创建|恢复|打开)[^'\n]*\.\.\./);
+    }
   });
 });

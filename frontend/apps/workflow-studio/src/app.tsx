@@ -168,10 +168,10 @@ export function App() {
   );
 
   return restoring ? (
-    <div className="loading-screen">正在恢复登录状态...</div>
+    <div className="loading-screen">正在恢复登录状态…</div>
   ) : (
     <SessionContext.Provider value={contextValue}>
-      <Suspense fallback={<div className="loading-screen">加载中...</div>}>
+      <Suspense fallback={<div className="loading-screen">加载中…</div>}>
         <RouterProvider router={router} />
       </Suspense>
     </SessionContext.Provider>

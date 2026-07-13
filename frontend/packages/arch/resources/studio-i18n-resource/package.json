@@ -6,8 +6,8 @@
   "scripts": {
     "build": "exit 0",
     "lint": "eslint ./ --cache",
-    "test": "exit 0",
-    "test:cov": "exit 0"
+    "test": "vitest --run --passWithNoTests",
+    "test:cov": "npm run test -- --coverage"
   },
   "dependencies": {},
   "devDependencies": {
@@ -21,4 +21,3 @@
     "react-dom": "~18.2.0"
   }
 }
-

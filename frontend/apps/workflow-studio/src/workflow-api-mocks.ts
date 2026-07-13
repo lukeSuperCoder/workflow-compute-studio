@@ -36,11 +36,11 @@ export function installWorkflowApiMocks() {
     config.adapter = adapterConfig => {
       const session = readSession();
       const spaceId = session?.spaceId ?? '999999';
-      const spaceName = `Space ${spaceId}`;
+      const spaceName = `空间 ${spaceId}`;
       const space = {
         id: spaceId,
         name: spaceName,
-        description: 'Mirap workflow workspace',
+        description: '算子工作流空间',
         icon_url: '',
         space_type: 1,
       };

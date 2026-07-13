@@ -36,7 +36,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
       await onSignIn(email.trim(), password);
     } catch (err) {
       setPassword('');
-      setError(err instanceof Error ? err.message : 'Unable to sign in');
+      setError(err instanceof Error ? err.message : '登录失败，请稍后重试');
     } finally {
       setSubmitting(false);
     }
@@ -46,16 +46,15 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
     <div className="login-page">
       <section className="login-panel">
         <div>
-          <p className="eyebrow">Mirap Workflow Studio</p>
-          <h1>Sign in to your workspace</h1>
+          <p className="eyebrow">算子工作流</p>
+          <h1>登录工作空间</h1>
           <p className="login-copy">
-            Use the email and password for your existing Mirap account. New
-            account registration is not available here.
+            使用已有账号的邮箱和密码登录。当前暂不支持注册新账号。
           </p>
         </div>
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
-            Email
+            邮箱
             <input
               type="email"
               name="email"
@@ -68,7 +67,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
             />
           </label>
           <label>
-            Password
+            密码
             <span className="password-field">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -81,10 +80,10 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
               <button
                 className="password-toggle"
                 type="button"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? '隐藏密码' : '显示密码'}
                 onClick={() => setShowPassword(value => !value)}
               >
-                {showPassword ? 'Hide' : 'Show'}
+                {showPassword ? '隐藏' : '显示'}
               </button>
             </span>
           </label>
@@ -98,7 +97,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
             type="submit"
             disabled={submitting}
           >
-            {submitting ? 'Signing in...' : 'Sign in'}
+            {submitting ? '登录中...' : '登录'}
           </button>
         </form>
       </section>

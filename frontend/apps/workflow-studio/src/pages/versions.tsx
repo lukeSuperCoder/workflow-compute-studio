@@ -49,7 +49,7 @@ export function VersionsPage() {
       const result = await listReleasedWorkflows(session, workflowId);
       setVersions(result.workflows);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load versions');
+      setError(err instanceof Error ? err.message : '加载版本列表失败');
     } finally {
       setLoading(false);
     }
@@ -63,11 +63,11 @@ export function VersionsPage() {
     <section className="page-surface">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Published Versions</p>
-          <h1>Workflow {workflowId}</h1>
+          <p className="eyebrow">已发布版本</p>
+          <h1>工作流 {workflowId}</h1>
         </div>
         <Link className="secondary-link" to={`/workflows/${workflowId}`}>
-          Open editor
+          打开编辑器
         </Link>
       </div>
 
@@ -76,10 +76,10 @@ export function VersionsPage() {
         <table>
           <thead>
             <tr>
-              <th>Version</th>
-              <th>Description</th>
-              <th>Commit</th>
-              <th>Updated</th>
+              <th>版本</th>
+              <th>描述</th>
+              <th>提交记录</th>
+              <th>更新时间</th>
             </tr>
           </thead>
           <tbody>
@@ -100,14 +100,14 @@ export function VersionsPage() {
             {!loading && versions.length === 0 ? (
               <tr>
                 <td className="empty-state" colSpan={4}>
-                  No published versions yet.
+                  暂无已发布版本
                 </td>
               </tr>
             ) : null}
           </tbody>
         </table>
         {loading ? (
-          <div className="table-loading">Loading versions...</div>
+          <div className="table-loading">正在加载版本...</div>
         ) : null}
       </div>
     </section>

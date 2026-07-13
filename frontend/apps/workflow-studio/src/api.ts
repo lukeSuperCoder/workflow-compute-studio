@@ -57,7 +57,7 @@ function toWorkflowSession(user: AuthUser): WorkflowSession {
 async function readApiResponse<T>(response: Response, path: string) {
   const payload = (await response.json()) as ApiResponse<T>;
   if (!response.ok || (payload.code ?? 0) !== 0) {
-    throw new Error(payload.msg || payload.error || `Request failed: ${path}`);
+    throw new Error(payload.msg || payload.error || `请求失败：${path}`);
   }
   return payload.data as T;
 }
@@ -107,7 +107,7 @@ export async function logout() {
 export async function getHealth() {
   const response = await fetch('/healthz', { credentials: 'include' });
   if (!response.ok) {
-    throw new Error('Workflow server is not healthy');
+    throw new Error('工作流服务当前不可用');
   }
 }
 

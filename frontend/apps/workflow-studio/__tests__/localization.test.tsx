@@ -1,0 +1,199 @@
+/*
+ * Copyright 2025 coze-dev Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act } from 'react-dom/test-utils';
+import { createRoot, type Root } from 'react-dom/client';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+import { SessionContext } from '../src/session-context';
+import { App } from '../src/app';
+import { LoginPage } from '../src/pages/login';
+import { WorkflowListPage } from '../src/pages/workflow-list';
+import { VersionsPage } from '../src/pages/versions';
+
+const apiMocks = vi.hoisted(() => ({
+  createWorkflow: vi.fn(),
+  login: vi.fn(),
+  logout: vi.fn(),
+  listReleasedWorkflows: vi.fn(),
+  listWorkflows: vi.fn(),
+  restoreSession: vi.fn(),
+}));
+
+vi.mock('../src/api', () => apiMocks);
+
+const session = {
+  userId: '42',
+  userName: '测试用户',
+  spaceId: '3',
+};
+
+function changeInput(input: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    'value',
+  )?.set;
+  setter?.call(input, value);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+describe('workflow-studio 中文界面', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true);
+    apiMocks.listWorkflows.mockResolvedValue({ workflows: [], total: 0 });
+    apiMocks.listReleasedWorkflows.mockResolvedValue({
+      workflows: [],
+      total: 0,
+    });
+    apiMocks.restoreSession.mockResolvedValue(session);
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.clearAllMocks();
+  });
+
+  it('登录页使用算子工作流品牌和自然中文表单文案', () => {
+    act(() => root.render(<LoginPage onSignIn={vi.fn()} />));
+
+    expect(container.querySelector('.eyebrow')?.textContent).toBe(
+      '算子工作流',
+    );
+    expect(container.querySelector('h1')?.textContent).toBe('登录工作空间');
+    expect(container.textContent).toContain('使用已有账号的邮箱和密码登录');
+    expect(container.querySelector('label')?.textContent).toContain('邮箱');
+    expect(
+      container.querySelector<HTMLButtonElement>('button[type="submit"]')
+        ?.textContent,
+    ).toBe('登录');
+  });
+
+  it('应用壳使用中文品牌、空间和恢复状态文案', async () => {
+    window.history.replaceState({}, '', '/');
+    act(() => root.render(<App />));
+    expect(container.textContent).toBe('正在恢复登录状态...');
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('.brand span:last-child')?.textContent).toBe(
+      '算子工作流',
+    );
+    expect(container.textContent).toContain('空间 3');
+    expect(container.textContent).toContain('退出登录');
+  });
+
+  it('工作流列表和创建弹窗使用中文文案', async () => {
+    await act(async () => {
+      root.render(
+        <SessionContext.Provider
+          value={{ session, signIn: vi.fn(), signOut: vi.fn() }}
+        >
+          <MemoryRouter
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
+            <WorkflowListPage />
+          </MemoryRouter>
+        </SessionContext.Provider>,
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('h1')?.textContent).toBe('工作流');
+    expect(container.textContent).toContain('暂无工作流');
+    const createButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === '新建工作流',
+    );
+    expect(createButton).toBeDefined();
+
+    act(() => createButton?.click());
+    expect(container.querySelector('.modal h2')?.textContent).toBe('创建工作流');
+    expect(container.querySelector('.modal')?.textContent).toContain('描述');
+    expect(container.querySelector('.modal')?.textContent).toContain('取消');
+
+    apiMocks.createWorkflow.mockResolvedValue({});
+    const nameInput = container.querySelector<HTMLInputElement>('.modal input');
+    await act(async () => {
+      if (!nameInput) {
+        throw new Error('缺少工作流名称输入框');
+      }
+      changeInput(nameInput, '测试工作流');
+      container
+        .querySelector<HTMLFormElement>('.modal')
+        ?.dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true }),
+        );
+      await Promise.resolve();
+    });
+    expect(apiMocks.createWorkflow).toHaveBeenCalledWith(session, {
+      name: '测试工作流',
+      desc: '算子工作流',
+    });
+  });
+
+  it('版本页使用中文标题、表头和空状态', async () => {
+    await act(async () => {
+      root.render(
+        <SessionContext.Provider
+          value={{ session, signIn: vi.fn(), signOut: vi.fn() }}
+        >
+          <MemoryRouter
+            initialEntries={['/workflows/123/versions']}
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
+            <Routes>
+              <Route
+                path="/workflows/:workflowId/versions"
+                element={<VersionsPage />}
+              />
+            </Routes>
+          </MemoryRouter>
+        </SessionContext.Provider>,
+      );
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('.eyebrow')?.textContent).toBe('已发布版本');
+    expect(container.querySelector('h1')?.textContent).toBe('工作流 123');
+    expect(container.textContent).toContain('版本');
+    expect(container.textContent).toContain('暂无已发布版本');
+    expect(container.textContent).toContain('打开编辑器');
+  });
+
+  it('入口 HTML 和构建配置声明中文语言与算子工作流标题', () => {
+    const html = readFileSync(resolve(__dirname, '../index.html'), 'utf8');
+    const rsbuild = readFileSync(
+      resolve(__dirname, '../rsbuild.config.ts'),
+      'utf8',
+    );
+
+    expect(html).toContain('<html lang="zh-CN">');
+    expect(html).toContain('<title>算子工作流</title>');
+    expect(rsbuild).toContain("title: '算子工作流'");
+  });
+});

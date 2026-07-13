@@ -52,12 +52,12 @@ function AppShell() {
     <div className="app-shell">
       <header className="top-bar">
         <button className="brand" type="button" onClick={() => navigate('/')}>
-          <span className="brand-mark">M</span>
-          <span>Mirap Workflow Studio</span>
+          <span className="brand-mark">算</span>
+          <span>算子工作流</span>
         </button>
         <div className="user-menu">
           <span>{session.userName}</span>
-          <span className="muted">Space {session.spaceId}</span>
+          <span className="muted">空间 {session.spaceId}</span>
           <button
             className="ghost-button"
             type="button"
@@ -69,7 +69,7 @@ function AppShell() {
               }
             }}
           >
-            Sign out
+            退出登录
           </button>
         </div>
       </header>
@@ -168,10 +168,10 @@ export function App() {
   );
 
   return restoring ? (
-    <div className="loading-screen">Restoring session...</div>
+    <div className="loading-screen">正在恢复登录状态...</div>
   ) : (
     <SessionContext.Provider value={contextValue}>
-      <Suspense fallback={<div className="loading-screen">Loading...</div>}>
+      <Suspense fallback={<div className="loading-screen">加载中...</div>}>
         <RouterProvider router={router} />
       </Suspense>
     </SessionContext.Provider>

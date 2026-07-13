@@ -2,7 +2,7 @@
   "name": "@mirap/workflow-studio-app",
   "version": "0.0.1",
   "private": true,
-  "description": "Mirap Workflow Studio web app",
+  "description": "算子工作流 Web 应用",
   "license": "Apache-2.0",
   "author": "mirap@bytedance.com",
   "sideEffects": false,

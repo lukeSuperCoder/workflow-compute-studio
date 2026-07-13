@@ -25,7 +25,7 @@ const emptyFeatureFlags: FEATURE_FLAGS = {};
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-  throw new Error('root element not found');
+  throw new Error('未找到应用根节点');
 }
 
 void pullFeatureFlags({

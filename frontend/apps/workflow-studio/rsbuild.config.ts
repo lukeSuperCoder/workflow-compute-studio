@@ -36,7 +36,7 @@ export default defineConfig({
     ],
   },
   html: {
-    title: 'Mirap Workflow Studio',
+    title: '算子工作流',
     template: './index.html',
     crossorigin: 'anonymous',
   },

@@ -29,7 +29,7 @@ export const SessionContext = createContext<SessionContextValue | null>(null);
 export function useWorkflowSession() {
   const value = useContext(SessionContext);
   if (!value) {
-    throw new Error('SessionContext is not mounted');
+    throw new Error('登录状态上下文尚未挂载');
   }
   return value;
 }

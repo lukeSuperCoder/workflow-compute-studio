@@ -34,7 +34,7 @@ export type UserLabel = Record<string, unknown>;
 function getCurrentUserInfo(): UserInfo {
   const session = readSession();
   const userId = session?.userId ?? '10001';
-  const userName = session?.userName ?? 'Workflow Developer';
+  const userName = session?.userName ?? '工作流开发者';
 
   return {
     user_id: Number(userId),

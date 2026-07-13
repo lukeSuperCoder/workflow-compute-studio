@@ -40,15 +40,15 @@ function formatTime(value: WorkflowItem['update_time']) {
 function statusText(status?: number) {
   switch (status) {
     case 1:
-      return 'Draft blocked';
+      return '草稿已阻止';
     case 2:
-      return 'Ready';
+      return '已就绪';
     case 3:
-      return 'Published';
+      return '已发布';
     case 4:
-      return 'Deleted';
+      return '已删除';
     default:
-      return 'Draft';
+      return '草稿';
   }
 }
 
@@ -82,7 +82,7 @@ export function WorkflowListPage() {
         const result = await listWorkflows(effectiveSession, nameFilter);
         setWorkflows(result.workflows);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load list');
+        setError(err instanceof Error ? err.message : '加载工作流列表失败');
       } finally {
         setLoading(false);
       }
@@ -119,7 +119,7 @@ export function WorkflowListPage() {
     try {
       const created = await createWorkflow(effectiveSession, {
         name: name.trim(),
-        desc: desc.trim() || 'Mirap workflow',
+        desc: desc.trim() || '算子工作流',
       });
       setCreateOpen(false);
       setName('');
@@ -131,7 +131,7 @@ export function WorkflowListPage() {
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create');
+      setError(err instanceof Error ? err.message : '创建工作流失败');
     } finally {
       setCreating(false);
     }
@@ -141,15 +141,15 @@ export function WorkflowListPage() {
     <section className="page-surface">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Workflow Library</p>
-          <h1>Workflows</h1>
+          <p className="eyebrow">工作流库</p>
+          <h1>工作流</h1>
         </div>
         <button
           className="primary-button"
           type="button"
           onClick={() => setCreateOpen(true)}
         >
-          New workflow
+          新建工作流
         </button>
       </div>
 
@@ -157,10 +157,10 @@ export function WorkflowListPage() {
         <input
           value={query}
           onChange={event => setQuery(event.target.value)}
-          placeholder="Search workflows"
+          placeholder="搜索工作流"
         />
         <button className="secondary-button" type="submit">
-          Search
+          搜索
         </button>
         <button
           className="ghost-button"
@@ -170,7 +170,7 @@ export function WorkflowListPage() {
             void loadWorkflows('');
           }}
         >
-          Refresh
+          刷新
         </button>
       </form>
 
@@ -205,10 +205,10 @@ function WorkflowTable({
       <table>
         <thead>
           <tr>
-            <th>Workflow</th>
-            <th>Status</th>
-            <th>Updated</th>
-            <th>Owner</th>
+            <th>工作流</th>
+            <th>状态</th>
+            <th>更新时间</th>
+            <th>创建人</th>
             <th />
           </tr>
         </thead>
@@ -220,13 +220,13 @@ function WorkflowTable({
                   {workflow.url ? (
                     <img src={workflow.url} alt="" />
                   ) : (
-                    <span className="workflow-avatar">W</span>
+                    <span className="workflow-avatar">流</span>
                   )}
                   <div>
                     <Link to={`/workflows/${workflow.id}`}>
                       {workflow.name || workflow.id}
                     </Link>
-                    <p>{workflow.desc || 'No description'}</p>
+                    <p>{workflow.desc || '暂无描述'}</p>
                   </div>
                 </div>
               </td>
@@ -240,22 +240,22 @@ function WorkflowTable({
               </td>
               <td>{workflow.creator?.name || '-'}</td>
               <td className="row-actions">
-                <Link to={`/workflows/${workflow.id}`}>Open</Link>
-                <Link to={`/workflows/${workflow.id}/versions`}>Versions</Link>
+                <Link to={`/workflows/${workflow.id}`}>打开</Link>
+                <Link to={`/workflows/${workflow.id}/versions`}>版本</Link>
               </td>
             </tr>
           ))}
           {!loading && rows.length === 0 ? (
             <tr>
               <td className="empty-state" colSpan={5}>
-                No workflows yet.
+                暂无工作流
               </td>
             </tr>
           ) : null}
         </tbody>
       </table>
       {loading ? (
-        <div className="table-loading">Loading workflows...</div>
+        <div className="table-loading">正在加载工作流...</div>
       ) : null}
     </div>
   );
@@ -281,9 +281,9 @@ function CreateWorkflowDialog({
   return (
     <div className="modal-backdrop" role="presentation">
       <form className="modal" onSubmit={onSubmit}>
-        <h2>Create workflow</h2>
+        <h2>创建工作流</h2>
         <label>
-          Name
+          名称
           <input
             value={name}
             onChange={event => onNameChange(event.target.value)}
@@ -293,7 +293,7 @@ function CreateWorkflowDialog({
           />
         </label>
         <label>
-          Description
+          描述
           <textarea
             value={desc}
             onChange={event => onDescChange(event.target.value)}
@@ -303,14 +303,14 @@ function CreateWorkflowDialog({
         </label>
         <div className="modal-actions">
           <button className="ghost-button" type="button" onClick={onCancel}>
-            Cancel
+            取消
           </button>
           <button
             className="primary-button"
             type="submit"
             disabled={creating || !name.trim()}
           >
-            {creating ? 'Creating...' : 'Create'}
+            {creating ? '创建中...' : '创建'}
           </button>
         </div>
       </form>

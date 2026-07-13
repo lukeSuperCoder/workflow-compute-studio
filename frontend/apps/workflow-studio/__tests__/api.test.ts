@@ -16,7 +16,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { login, logout, restoreSession } from '../src/api';
+import { getHealth, login, logout, restoreSession } from '../src/api';
 
 const authPayload = {
   code: 0,
@@ -100,5 +100,25 @@ describe('workflow auth API', () => {
     await expect(login('luke@example.com', 'wrong')).rejects.toThrow(
       'Email or password is incorrect',
     );
+  });
+
+  it('uses a Chinese fallback when an API response has no error message', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(jsonResponse({ code: 500 }, 500)),
+    );
+
+    await expect(login('luke@example.com', 'wrong')).rejects.toThrow(
+      '请求失败：/api/auth/login',
+    );
+  });
+
+  it('uses a Chinese health-check error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response(null, { status: 503 })),
+    );
+
+    await expect(getHealth()).rejects.toThrow('工作流服务当前不可用');
   });
 });

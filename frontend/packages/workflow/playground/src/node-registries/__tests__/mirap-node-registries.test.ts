@@ -15,6 +15,12 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
+import type {
+  WorkflowDocument,
+  WorkflowNodeEntity,
+  WorkflowNodeJSON,
+} from '@flowgram-adapter/free-layout-editor';
+import { WorkflowJSONFormat } from '@coze-workflow/nodes/src/workflow-json-format';
 import { StandardNodeType } from '@coze-workflow/base';
 
 import { MIRAP_STAY_CALC_NODE_REGISTRY } from '../mirap-stay-calc/node-registry';
@@ -37,6 +43,16 @@ vi.mock('@coze-workflow/nodes', () => ({
   DEFAULT_NODE_META_PATH: 'nodeMeta',
   DEFAULT_OUTPUTS_PATH: 'outputs',
 }));
+vi.mock('@coze-workflow/variable', () => ({
+  WorkflowBatchService: Symbol('WorkflowBatchService'),
+  WorkflowVariableService: Symbol('WorkflowVariableService'),
+  variableUtils: {
+    dtoMetaToViewMeta: (value: unknown) => value,
+    inputValueToDTO: (value: unknown) => value,
+    inputValueToVO: (value: unknown) => value,
+    viewMetaToDTOMeta: (value: unknown) => value,
+  },
+}));
 vi.mock('@/test-run-kit', () => ({
   generateParametersToProperties: () => [],
 }));
@@ -54,6 +70,15 @@ vi.mock('../mirap-mmsi-set/form-meta', () => ({
 }));
 
 describe('Mirap node registry persistence contract', () => {
+  const registries = [
+    MIRAP_AREA_SHIP_NODE_REGISTRY,
+    MIRAP_STAY_CALC_NODE_REGISTRY,
+    MIRAP_HOVER_DETAIL_NODE_REGISTRY,
+    MIRAP_MMSI_INTERSECTION_NODE_REGISTRY,
+    MIRAP_MMSI_UNION_NODE_REGISTRY,
+    MIRAP_MMSI_DIFFERENCE_NODE_REGISTRY,
+  ];
+
   it.each([
     [MIRAP_AREA_SHIP_NODE_REGISTRY, StandardNodeType.MirapAreaShipExtractor],
     [MIRAP_STAY_CALC_NODE_REGISTRY, StandardNodeType.MirapStayCalculation],
@@ -68,4 +93,42 @@ describe('Mirap node registry persistence contract', () => {
     expect(registry.type).toBe(nodeType);
     expect(registry.meta.nodeDTOType).toBe(nodeType);
   });
+
+  it.each(registries)(
+    'restores $type through the production schema save and reopen transforms',
+    registry => {
+      const registryByType = new Map(registries.map(item => [item.type, item]));
+      const document = {
+        getNodeRegister: (type: StandardNodeType) => registryByType.get(type),
+      } as unknown as WorkflowDocument;
+      const formatter = new WorkflowJSONFormat();
+      Object.defineProperty(formatter, 'playgroundContext', {
+        value: { getNodeTemplateInfoByType: () => undefined },
+      });
+      const canvasNode: WorkflowNodeJSON = {
+        id: `node-${registry.type}`,
+        type: registry.type,
+        meta: { position: { x: 10, y: 20 } },
+        data: {
+          nodeMeta: { title: `node-${registry.type}` },
+          mirapPersistenceMarker: registry.type,
+        },
+      };
+
+      const submitted = formatter.formatNodeOnSubmit(
+        structuredClone(canvasNode),
+        document,
+        {} as WorkflowNodeEntity,
+      );
+      const persistedSchema = JSON.parse(
+        JSON.stringify({ nodes: [submitted], edges: [] }),
+      );
+      const reopened = formatter.formatOnInit(persistedSchema, document);
+      const restoredNode = reopened.nodes[0];
+      const restoredRegistry = document.getNodeRegister(restoredNode.type);
+
+      expect(restoredRegistry).toBe(registry);
+      expect(restoredNode.data?.mirapPersistenceMarker).toBe(registry.type);
+    },
+  );
 });

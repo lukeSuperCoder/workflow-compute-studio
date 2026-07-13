@@ -13683,7 +13683,7 @@
   "workflow_error_node_sensitive": "The node contains sensitive information. Please modify it and try again.",
   "workflow_error_not_exit": "This workflow does not exist.",
   "workflow_error_publish": "Failed to publish the workflow. Please retry after running it again.",
-  "workflow_error_sys": "Coze is experiencing some issues. Please try again later.",
+  "workflow_error_sys": "算子工作流 is experiencing some issues. Please try again later.",
   "workflow_example_succeed": "Used successfully",
   "workflow_exception_ignore_default_output": "Default output",
   "workflow_exception_ignore_desc": "Ignore exceptions and use default output as a substitute when an exception occurs.",

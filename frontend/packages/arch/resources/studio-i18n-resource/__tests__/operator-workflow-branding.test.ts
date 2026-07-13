@@ -23,10 +23,19 @@ describe('operator workflow visible branding', () => {
   it('uses the operator workflow name in Chinese', () => {
     expect(zhCN.platform_name).toBe('算子工作流');
     expect(zhCN.open_source_login_welcome).toBe('欢迎使用算子工作流');
+    expect(zhCN.workflow_error_sys).toBe(
+      '算子工作流遇到了一些问题，请稍后再试。',
+    );
+    expect(zhCN.workflow_detail_node_workflows_max).toBe(
+      '最多显示 {number} 条最近修改的工作流',
+    );
   });
 
   it('does not restore Coze branding in English', () => {
     expect(en.platform_name).toBe('算子工作流');
     expect(en.open_source_login_welcome).toBe('Welcome to 算子工作流');
+    expect(en.workflow_error_sys).toBe(
+      '算子工作流 is experiencing some issues. Please try again later.',
+    );
   });
 });

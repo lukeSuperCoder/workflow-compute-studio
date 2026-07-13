@@ -30,6 +30,18 @@ describe('runtime branding', () => {
     expect(config).not.toContain("title: '扣子 Studio'");
   });
 
+  it('prevents shared layouts from replacing page-specific document titles', () => {
+    const globalLayout = fs.readFileSync(
+      path.resolve(
+        __dirname,
+        '../../../packages/foundation/layout/src/components/global-layout/index.tsx',
+      ),
+      'utf8',
+    );
+
+    expect(globalLayout.match(/<Layout\b[^>]*\bkeepDocTitle\b/g)).toHaveLength(2);
+  });
+
   it('wires the document language to initial and later i18n changes', () => {
     const entry = fs.readFileSync(
       path.resolve(__dirname, '../src/index.tsx'),

@@ -14,7 +14,8 @@
     "@coze-arch/eslint-config": "workspace:*",
     "@coze-arch/ts-config": "workspace:*",
     "@coze-arch/vitest-config": "workspace:*",
-    "@types/node": "^18"
+    "@types/node": "^18",
+    "vitest": "~3.0.5"
   },
   "peerDependencies": {
     "react": "~18.2.0",

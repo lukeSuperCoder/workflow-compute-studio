@@ -67,6 +67,35 @@ make workflow-migrate
 make workflow-smoke
 ```
 
+## 历史数据切换
+
+阶段 10 使用带运行清单和回滚备份的覆盖式切换。源端默认是
+`coze-studio-debug` 的 `coze-mysql`、`coze-minio` 和 `opencoze` 库；目标端读取
+`docker/.env.workflow`。执行记录、节点执行记录和快照不会迁移。
+
+工作流迁移集只包含同时满足以下条件的数据：创建者存在、所属空间存在，并且创建者是
+该空间成员。预检会把纳入和排除的工作流 ID 分别写入 `included_workflow_ids` 和
+`excluded_workflow_ids`。孤立测试工作流不会进入元信息、草稿、版本、引用或文件清单。
+
+```bash
+# 只读预检，并从输出取得 RUN_ID
+make workflow-cutover-preflight
+
+# 清库前必须成功生成源数据、目标数据和 local storage 备份
+make workflow-cutover-backup RUN_ID=<run-id>
+
+# 覆盖目标业务数据并迁移被引用的 MinIO 对象
+make workflow-cutover-migrate RUN_ID=<run-id>
+make workflow-cutover-validate RUN_ID=<run-id>
+
+# 验证失败时恢复切换前的目标数据库和 storage
+make workflow-cutover-rollback RUN_ID=<run-id>
+```
+
+运行产物保存在 `backups/workflow-cutover/<run-id>/`（Git 忽略），包括源数据导出、
+目标切换前备份、storage 备份、SHA-256 清单和验证报告。`migrate` 与 `rollback`
+均要求明确的运行 ID；脚本还会校验目标库名，避免误操作其他数据库。
+
 MySQL 首次启动会执行 `migrations/workflow_schema.sql`，之后 `workflow-migrate` 会按 `_mirap_schema_migrations` 记录执行增量迁移。
 
 ## 常见问题

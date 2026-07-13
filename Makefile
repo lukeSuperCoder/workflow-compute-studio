@@ -1,4 +1,4 @@
-.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-server workflow-web workflow-smoke workflow-go-test workflow-down dev-server dev-web test build
+.PHONY: debug fe server sync_db dump_db middleware web down clean python help workflow-env workflow-middleware workflow-migrate workflow-cutover-preflight workflow-cutover-backup workflow-cutover-migrate workflow-cutover-validate workflow-cutover-rollback workflow-server workflow-web workflow-smoke workflow-go-test workflow-down dev-server dev-web test build
 
 # 定义脚本路径
 SCRIPTS_DIR := ./scripts
@@ -149,6 +149,21 @@ workflow-migrate: workflow-env
 	@echo "Apply workflow database migrations"
 	@scripts/workflow_migrate.sh
 
+workflow-cutover-preflight: workflow-env
+	@scripts/workflow_data_cutover.sh preflight
+
+workflow-cutover-backup: workflow-env
+	@scripts/workflow_data_cutover.sh backup --run-id "$(RUN_ID)"
+
+workflow-cutover-migrate: workflow-env
+	@scripts/workflow_data_cutover.sh migrate --run-id "$(RUN_ID)" --confirm
+
+workflow-cutover-validate: workflow-env
+	@scripts/workflow_data_cutover.sh validate --run-id "$(RUN_ID)"
+
+workflow-cutover-rollback: workflow-env
+	@scripts/workflow_data_cutover.sh rollback --run-id "$(RUN_ID)" --confirm
+
 workflow-server: workflow-env
 	@echo "Start workflow-only backend server"
 	@cd backend && APP_ENV=workflow go run ./cmd/workflow-server
@@ -204,6 +219,11 @@ help:
 	@echo "  workflow-env     - Create isolated workflow env files."
 	@echo "  workflow-middleware - Start isolated workflow MySQL and Redis."
 	@echo "  workflow-migrate - Apply workflow database migrations to the running MySQL container."
+	@echo "  workflow-cutover-preflight - Inspect source and target data; prints a new RUN_ID."
+	@echo "  workflow-cutover-backup - Back up cutover data (requires RUN_ID=<id>)."
+	@echo "  workflow-cutover-migrate - Replace target data (requires RUN_ID=<id>)."
+	@echo "  workflow-cutover-validate - Validate migrated data/files (requires RUN_ID=<id>)."
+	@echo "  workflow-cutover-rollback - Restore pre-cutover target (requires RUN_ID=<id>)."
 	@echo "  workflow-server  - Start workflow-only backend with APP_ENV=workflow."
 	@echo "  workflow-web     - Start Mirap workflow frontend on port 5174."
 	@echo "  workflow-smoke   - Run workflow-only API smoke test against LISTEN_ADDR."

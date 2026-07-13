@@ -11,8 +11,9 @@
 ## Global Constraints
 
 - Migrate `user`, `space`, `space_user`, `workflow_meta`, `workflow_draft`, `workflow_version`, and `workflow_reference` only.
+- Include only workflows whose creator and space exist and whose creator is a member of that space; record excluded workflow IDs in the run manifest.
 - Do not migrate `workflow_execution`, `node_execution`, or `workflow_snapshot`.
-- Replace the target's nine smoke/test workflows after backing them up.
+- Replace all existing target workflows after backing them up.
 - Preserve source IDs, timestamps, soft-delete values, versions, and workflow references.
 - Never print or persist database passwords.
 - Never clear the target until preflight and backup have succeeded.
@@ -224,7 +225,7 @@ make workflow-cutover-preflight
 make workflow-cutover-backup RUN_ID=<reported-run-id>
 ```
 
-Expected source counts: user 2, space 2, workflow_meta 8, workflow_draft 8, workflow_version 13, workflow_reference 1; final status `backup_ok`.
+Expected selected counts: user 2, space 2, workflow_meta 7, workflow_draft 7, workflow_version 13, workflow_reference 1; source workflow `id=1` is excluded because its creator and space do not exist. Final status: `backup_ok`.
 
 - [ ] **Step 2: Migrate**
 

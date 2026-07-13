@@ -800,6 +800,8 @@ exclude_dir = ["storage", "tmp", "testdata"]
 
 预计：3～5 天。
 
+状态（2026-07-13）：进行中，正式迁移与回滚链路已完成。首次全量演练运行 ID 为 `20260713-134331`，已完成备份、覆盖迁移、校验、回滚恢复和重新迁移。复核时发现旧库工作流 `id=1`（`split_messages`）使用不存在的 `space_id=999999` 和 `creator_id=0`，无法通过新服务权限校验；已按“创建者存在、空间存在且创建者属于该空间”的规则从正式迁移集排除。最终运行 ID 为 `20260713-143959`，迁移 2 个用户、2 个空间、2 条空间成员关系、7 个有效工作流、7 份草稿、13 个发布版本和 1 条引用；执行记录、节点执行记录和快照未迁移。数据库精确计数、有效归属、草稿/版本/最新版本关系以及 9 个文件引用的迁移或替代校验均通过，`make workflow-smoke` 通过后已重新应用正式迁移集清除 smoke 夹具。旧 MinIO 缺失 `default_icon/workflow_icon/icon-subworkflow.jpg`，已记录并使用 `icon-workflow.jpg` 内容补齐该悬空 key。待完成 7 个历史画布的页面抽样重开后标记阶段完成。
+
 迁移顺序：
 
 1. 准备目标 Docker MySQL 数据库，确认挂载目录、端口和字符集。
@@ -819,9 +821,10 @@ exclude_dir = ["storage", "tmp", "testdata"]
 数据校验：
 
 ```text
-旧库 workflow_meta 数量 == 新库 workflow_meta 数量
-旧库 workflow_draft 数量 == 新库 workflow_draft 数量
-旧库 workflow_version 数量 == 新库 workflow_version 数量
+旧库有效归属 workflow_meta 数量 == 新库 workflow_meta 数量
+旧库有效归属 workflow_draft 数量 == 新库 workflow_draft 数量
+旧库有效归属 workflow_version 数量 == 新库 workflow_version 数量
+新库不存在创建者、空间或空间成员关系无效的工作流
 每个 workflow_meta 都存在对应 draft
 latest_version 能在 workflow_version 中找到
 所有 Mirap 节点 type 均在新节点目录注册

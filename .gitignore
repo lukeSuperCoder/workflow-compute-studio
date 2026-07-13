@@ -49,6 +49,9 @@ docker/data/*
 docker/data-workflow/*
 storage/*
 
+# Workflow data cutover backups and manifests
+backups/workflow-cutover/
+
 backend/static
 
 node_modules

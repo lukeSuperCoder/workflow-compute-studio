@@ -21,17 +21,18 @@ import {
   createBrowserRouter,
   useNavigate,
 } from 'react-router-dom';
-import { Suspense, lazy, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 
 import {
   SessionContext,
   useWorkflowSession,
   type SessionContextValue,
 } from './session-context';
-import { clearSession, createDefaultSession, readSession } from './session';
+import { clearSession, saveSession } from './session';
 import { WorkflowListPage } from './pages/workflow-list';
 import { VersionsPage } from './pages/versions';
 import { LoginPage } from './pages/login';
+import { login, logout, restoreSession } from './api';
 
 const WorkflowEditorRoute = lazy(() =>
   import('./pages/workflow-editor-route').then(module => ({
@@ -60,9 +61,12 @@ function AppShell() {
           <button
             className="ghost-button"
             type="button"
-            onClick={() => {
-              signOut();
-              navigate('/login', { replace: true });
+            onClick={async () => {
+              try {
+                await signOut();
+              } finally {
+                navigate('/login', { replace: true });
+              }
             }}
           >
             Sign out
@@ -84,8 +88,8 @@ function LoginRoute() {
 
   return (
     <LoginPage
-      onSignIn={input => {
-        signIn(createDefaultSession(input));
+      onSignIn={async (email, password) => {
+        signIn(await login(email, password));
       }}
     />
   );
@@ -121,20 +125,51 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  const [session, setSession] = useState(() => readSession());
+  const [session, setSession] = useState<SessionContextValue['session']>(null);
+  const [restoring, setRestoring] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    restoreSession()
+      .then(nextSession => {
+        if (active) {
+          saveSession(nextSession);
+          setSession(nextSession);
+        }
+      })
+      .catch(() => clearSession())
+      .finally(() => {
+        if (active) {
+          setRestoring(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const contextValue = useMemo<SessionContextValue>(
     () => ({
       session,
-      signIn: nextSession => setSession(nextSession),
-      signOut: () => {
-        clearSession();
-        setSession(null);
+      signIn: nextSession => {
+        saveSession(nextSession);
+        setSession(nextSession);
+      },
+      signOut: async () => {
+        try {
+          await logout();
+        } finally {
+          clearSession();
+          setSession(null);
+        }
       },
     }),
     [session],
   );
 
-  return (
+  return restoring ? (
+    <div className="loading-screen">Restoring session...</div>
+  ) : (
     <SessionContext.Provider value={contextValue}>
       <Suspense fallback={<div className="loading-screen">Loading...</div>}>
         <RouterProvider router={router} />

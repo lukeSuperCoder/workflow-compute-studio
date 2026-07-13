@@ -16,34 +16,29 @@
 
 import { useState, type FormEvent } from 'react';
 
-import type { WorkflowSession } from '../types';
-import { getHealth } from '../api';
-
 interface LoginPageProps {
-  onSignIn: (session: Partial<WorkflowSession>) => void;
+  onSignIn: (email: string, password: string) => Promise<void>;
 }
 
 export function LoginPage({ onSignIn }: LoginPageProps) {
-  const [userName, setUserName] = useState('Workflow Developer');
-  const [spaceId, setSpaceId] = useState('999999');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [checking, setChecking] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setChecking(true);
+    setSubmitting(true);
     setError('');
 
     try {
-      await getHealth();
-      onSignIn({
-        userName: userName.trim() || 'Workflow Developer',
-        spaceId: spaceId.trim() || '999999',
-      });
+      await onSignIn(email.trim(), password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to reach server');
+      setPassword('');
+      setError(err instanceof Error ? err.message : 'Unable to sign in');
     } finally {
-      setChecking(false);
+      setSubmitting(false);
     }
   };
 
@@ -52,32 +47,58 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
       <section className="login-panel">
         <div>
           <p className="eyebrow">Mirap Workflow Studio</p>
-          <h1>Workflow-only workspace</h1>
+          <h1>Sign in to your workspace</h1>
           <p className="login-copy">
-            Connect to the local workflow server and open the reduced workflow
-            surface.
+            Use the email and password for your existing Mirap account. New
+            account registration is not available here.
           </p>
         </div>
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
-            Display name
+            Email
             <input
-              value={userName}
-              onChange={event => setUserName(event.target.value)}
-              autoComplete="name"
+              type="email"
+              name="email"
+              value={email}
+              onChange={event => setEmail(event.target.value)}
+              autoComplete="username"
+              inputMode="email"
+              autoFocus
+              required
             />
           </label>
           <label>
-            Space ID
-            <input
-              value={spaceId}
-              onChange={event => setSpaceId(event.target.value)}
-              inputMode="numeric"
-            />
+            Password
+            <span className="password-field">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={password}
+                onChange={event => setPassword(event.target.value)}
+                autoComplete="current-password"
+                required
+              />
+              <button
+                className="password-toggle"
+                type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword(value => !value)}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </span>
           </label>
-          {error ? <div className="error-message">{error}</div> : null}
-          <button className="primary-button" type="submit" disabled={checking}>
-            {checking ? 'Checking...' : 'Enter studio'}
+          {error ? (
+            <div className="error-message" role="alert">
+              {error}
+            </div>
+          ) : null}
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
       </section>

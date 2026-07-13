@@ -103,6 +103,29 @@ a:hover {
   gap: 18px;
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 64px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  padding: 4px;
+  color: #1456d8;
+  font: inherit;
+  font-size: 12px;
+  background: transparent;
+  border: 0;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
 label {
   display: flex;
   flex-direction: column;

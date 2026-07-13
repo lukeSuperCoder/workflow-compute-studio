@@ -21,7 +21,7 @@ import type { WorkflowSession } from './types';
 export interface SessionContextValue {
   session: WorkflowSession | null;
   signIn: (session: WorkflowSession) => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 export const SessionContext = createContext<SessionContextValue | null>(null);

@@ -45,8 +45,6 @@ export function saveSession(session: WorkflowSession) {
   return session;
 }
 
-export const createDefaultSession = saveSession;
-
 export function clearSession() {
   window.localStorage.removeItem(STORAGE_KEY);
 }

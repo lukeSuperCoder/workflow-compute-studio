@@ -18,12 +18,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createWorkflow,
+  deleteWorkflow,
   getHealth,
   listReleasedWorkflows,
   listWorkflows,
   login,
   logout,
   restoreSession,
+  updateWorkflow,
 } from '../src/api';
 
 const session = {
@@ -117,7 +119,10 @@ describe('workflow auth API', () => {
   });
 
   it('normalizes a rejected network request for workflow lists', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new TypeError('Failed to fetch')),
+    );
 
     await expect(listWorkflows(session)).rejects.toThrow(
       '无法连接到工作流服务，请检查网络后重试',
@@ -173,5 +178,43 @@ describe('workflow auth API', () => {
     );
 
     await expect(getHealth()).rejects.toThrow('工作流服务当前不可用');
+  });
+
+  it('updates workflow name and description', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ code: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await updateWorkflow(session, '123', {
+      name: '新名称',
+      desc: '新描述',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/workflow_api/update_meta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        workflow_id: '123',
+        space_id: '3',
+        name: '新名称',
+        desc: '新描述',
+      }),
+    });
+  });
+
+  it('deletes a workflow', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ code: 0, data: { status: 0 } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await deleteWorkflow(session, '123');
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/workflow_api/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ workflow_id: '123', space_id: '3' }),
+    });
   });
 });

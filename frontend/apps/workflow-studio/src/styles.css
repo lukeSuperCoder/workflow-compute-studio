@@ -370,6 +370,22 @@ tr:last-child td {
   gap: 12px;
 }
 
+.text-action-button {
+  padding: 0;
+  color: #1456d8;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.text-action-button:hover {
+  text-decoration: underline;
+}
+
+.danger-text {
+  color: #c53030;
+}
+
 .empty-state,
 .table-loading {
   color: #646a73;
@@ -407,6 +423,54 @@ tr:last-child td {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.confirm-modal {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.confirm-modal .modal-actions {
+  grid-column: 1 / -1;
+}
+
+.danger-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: #b42318;
+  background: #fee4e2;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.confirm-copy {
+  margin: 10px 0 0;
+  color: #646a73;
+  line-height: 1.6;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  height: 36px;
+  padding: 0 14px;
+  color: #fff;
+  background: #c53030;
+  border: 1px solid #c53030;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.danger-button:disabled,
+.ghost-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
 }
 
 .editor-route {

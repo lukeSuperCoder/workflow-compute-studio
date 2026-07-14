@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-import { readFileSync } from 'node:fs';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react-dom/test-utils';
 import { createRoot, type Root } from 'react-dom/client';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { SessionContext } from '../src/session-context';
-import { App } from '../src/app';
-import { LoginPage } from '../src/pages/login';
 import { WorkflowListPage } from '../src/pages/workflow-list';
 import { VersionsPage } from '../src/pages/versions';
+import { LoginPage } from '../src/pages/login';
+import { App } from '../src/app';
 
 const apiMocks = vi.hoisted(() => ({
   createWorkflow: vi.fn(),
+  deleteWorkflow: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
   listReleasedWorkflows: vi.fn(),
   listWorkflows: vi.fn(),
   restoreSession: vi.fn(),
+  updateWorkflow: vi.fn(),
 }));
 
 vi.mock('../src/api', () => apiMocks);
@@ -52,6 +55,15 @@ function changeInput(input: HTMLInputElement, value: string) {
   )?.set;
   setter?.call(input, value);
   input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function changeTextArea(textarea: HTMLTextAreaElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLTextAreaElement.prototype,
+    'value',
+  )?.set;
+  setter?.call(textarea, value);
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 describe('workflow-studio 中文界面', () => {
@@ -80,9 +92,7 @@ describe('workflow-studio 中文界面', () => {
   it('登录页使用算子工作流品牌和自然中文表单文案', () => {
     act(() => root.render(<LoginPage onSignIn={vi.fn()} />));
 
-    expect(container.querySelector('.eyebrow')?.textContent).toBe(
-      '算子工作流',
-    );
+    expect(container.querySelector('.eyebrow')?.textContent).toBe('算子工作流');
     expect(container.querySelector('h1')?.textContent).toBe('登录工作空间');
     expect(container.textContent).toContain('使用已有账号的邮箱和密码登录');
     expect(container.querySelector('label')?.textContent).toContain('邮箱');
@@ -142,7 +152,9 @@ describe('workflow-studio 中文界面', () => {
     expect(createButton).toBeDefined();
 
     act(() => createButton?.click());
-    expect(container.querySelector('.modal h2')?.textContent).toBe('创建工作流');
+    expect(container.querySelector('.modal h2')?.textContent).toBe(
+      '创建工作流',
+    );
     expect(container.querySelector('.modal')?.textContent).toContain('描述');
     expect(container.querySelector('.modal')?.textContent).toContain('取消');
 
@@ -196,7 +208,84 @@ describe('workflow-studio 中文界面', () => {
     expect(headers.at(-1)?.textContent).toBe('操作');
 
     const actionCell = container.querySelector('tbody td.row-actions');
-    expect(actionCell?.querySelector(':scope > .row-actions-inner')).not.toBeNull();
+    expect(
+      actionCell?.querySelector(':scope > .row-actions-inner'),
+    ).not.toBeNull();
+    expect(actionCell?.textContent).toContain('编辑');
+    expect(actionCell?.textContent).toContain('删除');
+  });
+
+  it('可以编辑工作流名称和描述并确认删除', async () => {
+    apiMocks.listWorkflows.mockResolvedValue({
+      workflows: [
+        {
+          workflow_id: 'workflow-1',
+          name: '原名称',
+          desc: '原描述',
+        },
+      ],
+      total: 1,
+    });
+    apiMocks.updateWorkflow.mockResolvedValue(undefined);
+    apiMocks.deleteWorkflow.mockResolvedValue(undefined);
+
+    await act(async () => {
+      root.render(
+        <SessionContext.Provider
+          value={{ session, signIn: vi.fn(), signOut: vi.fn() }}
+        >
+          <MemoryRouter
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
+            <WorkflowListPage />
+          </MemoryRouter>
+        </SessionContext.Provider>,
+      );
+      await Promise.resolve();
+    });
+
+    const findButton = (text: string) =>
+      Array.from(container.querySelectorAll('button')).find(
+        button => button.textContent === text,
+      );
+
+    act(() => findButton('编辑')?.click());
+    expect(container.querySelector('.modal h2')?.textContent).toBe(
+      '编辑工作流',
+    );
+
+    const editName = container.querySelector<HTMLInputElement>('.modal input');
+    const editDesc =
+      container.querySelector<HTMLTextAreaElement>('.modal textarea');
+    await act(async () => {
+      if (!editName || !editDesc) {
+        throw new Error('缺少编辑工作流表单');
+      }
+      changeInput(editName, '新名称');
+      changeTextArea(editDesc, '新描述');
+      container
+        .querySelector<HTMLFormElement>('.modal')
+        ?.dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true }),
+        );
+      await Promise.resolve();
+    });
+    expect(apiMocks.updateWorkflow).toHaveBeenCalledWith(
+      session,
+      'workflow-1',
+      { name: '新名称', desc: '新描述' },
+    );
+
+    act(() => findButton('删除')?.click());
+    expect(container.querySelector('.confirm-copy')?.textContent).toContain(
+      '原名称',
+    );
+
+    await act(async () => {
+      findButton('确认删除')?.click();
+      await Promise.resolve();
+    });
+    expect(apiMocks.deleteWorkflow).toHaveBeenCalledWith(session, 'workflow-1');
   });
 
   it('版本页使用中文标题、表头和空状态', async () => {

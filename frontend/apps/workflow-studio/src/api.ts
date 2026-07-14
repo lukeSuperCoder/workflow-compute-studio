@@ -39,6 +39,10 @@ interface CreateWorkflowData {
   url?: string;
 }
 
+interface DeleteWorkflowData {
+  status?: number;
+}
+
 interface ReleasedWorkflowData {
   workflow_list?: ReleasedWorkflowItem[];
   total?: number | string;
@@ -177,6 +181,33 @@ export async function createWorkflow(
   });
 
   return data;
+}
+
+export async function updateWorkflow(
+  session: WorkflowSession,
+  workflowId: string,
+  input: { name: string; desc: string },
+) {
+  await postJson<undefined>('/api/workflow_api/update_meta', {
+    workflow_id: workflowId,
+    space_id: session.spaceId,
+    name: input.name,
+    desc: input.desc,
+  });
+}
+
+export async function deleteWorkflow(
+  session: WorkflowSession,
+  workflowId: string,
+) {
+  const data = await postJson<DeleteWorkflowData>('/api/workflow_api/delete', {
+    workflow_id: workflowId,
+    space_id: session.spaceId,
+  });
+
+  if (data?.status !== undefined && data.status !== 0) {
+    throw new Error('删除工作流失败');
+  }
 }
 
 export async function listReleasedWorkflows(

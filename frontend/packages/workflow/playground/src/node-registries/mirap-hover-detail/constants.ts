@@ -74,13 +74,24 @@ export const OUTPUT_FIELDS = [
 // configured without changing the form or transformer contract.
 export const REQUIRED_OUTPUT_FIELDS = ['mmsi'];
 
+export const SELECTED_OUTPUTS_PATH = 'inputs.selectedOutputs';
+
+export const DEFAULT_SELECTED_OUTPUTS = OUTPUT_FIELDS.map(field => field.name);
+
+export const normalizeSelectedOutputs = (selected: string[]) =>
+  OUTPUT_FIELDS.map(field => field.name).filter(
+    name => selected.includes(name) || REQUIRED_OUTPUT_FIELDS.includes(name),
+  );
+
 export const createOutputs = (
+  selected: string[] = DEFAULT_SELECTED_OUTPUTS,
   existingOutputs: Array<{
     key?: string;
     name?: string;
     children?: Array<{ key?: string; name?: string }>;
   }> = [],
 ) => {
+  const selectedSet = new Set(normalizeSelectedOutputs(selected));
   const existingOutput = existingOutputs.find(
     item => item.name === OUTPUT_NAME,
   );
@@ -92,11 +103,13 @@ export const createOutputs = (
       key: existingOutput?.key ?? nanoid(),
       name: OUTPUT_NAME,
       type: OUTPUT_TYPE,
-      children: OUTPUT_FIELDS.map(field => ({
-        key: existingChildren.get(field.name) ?? nanoid(),
-        name: field.name,
-        type: field.type,
-      })),
+      children: OUTPUT_FIELDS.filter(field => selectedSet.has(field.name)).map(
+        field => ({
+          key: existingChildren.get(field.name) ?? nanoid(),
+          name: field.name,
+          type: field.type,
+        }),
+      ),
     },
   ];
 };

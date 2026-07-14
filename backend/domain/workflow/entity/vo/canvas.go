@@ -139,7 +139,7 @@ type Inputs struct {
 	*PluginAPIParam     // exclusive configurations for NodeTypePlugin
 	*VariableAggregator // exclusive configurations for NodeTypeVariableAggregator
 	*VariableAssigner   // exclusive configurations for NodeTypeVariableAssigner
-	*MirapAreaShip      // exclusive configurations for Mirap fixed HTTP operator nodes
+	*MirapOutputs       // shared selected-output contract for Mirap HTTP operator nodes
 	*MirapMMSISet       // exclusive configurations for Mirap MMSI set operation nodes
 	*QA                 // exclusive configurations for NodeTypeQuestionAnswer
 	*Batch              // exclusive configurations for NodeTypeBatch
@@ -385,11 +385,11 @@ type HttpRequestSetting struct {
 	RetryTimes int64 `json:"retryTimes"`
 }
 
-// MirapAreaShip holds exclusive configurations for NodeTypeMirapAreaShipExtractor.
-type MirapAreaShip struct {
-	// SelectedOutputs is the subset of the `ships` element fields the user
-	// chose to emit. Its fields are promoted to the canvas node's `inputs`
-	// level. Empty/absent means all known element fields are emitted.
+// MirapOutputs is shared by Mirap HTTP operators that expose a
+// user-selectable subset of their fixed response fields. Embedding this once
+// avoids ambiguous JSON fields when multiple operator-specific structs use the
+// same persisted `inputs.selectedOutputs` path.
+type MirapOutputs struct {
 	SelectedOutputs []string `json:"selectedOutputs,omitempty"`
 }
 

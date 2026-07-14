@@ -127,10 +127,10 @@ func endpointURL() string {
 // readSelectedOutputs returns the user-selected element field names from the
 // canvas node, or nil when the node carries none (legacy data).
 func readSelectedOutputs(n *vo.Node) []string {
-	if n == nil || n.Data.Inputs == nil || n.Data.Inputs.MirapAreaShip == nil {
+	if n == nil || n.Data.Inputs == nil || n.Data.Inputs.MirapOutputs == nil {
 		return nil
 	}
-	return n.Data.Inputs.MirapAreaShip.SelectedOutputs
+	return n.Data.Inputs.MirapOutputs.SelectedOutputs
 }
 
 type Extractor struct {

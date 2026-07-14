@@ -21,8 +21,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -82,6 +84,37 @@ func TestExtractorInvokeSuccess(t *testing.T) {
 		},
 	}, events)
 	assert.Len(t, output, 1)
+}
+
+func TestExtractorInvokeSelectedOutputsSubset(t *testing.T) {
+	t.Setenv(authorizationEnv, "elane_token_test")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"code":"200","message":"success","datas":[{"mmsi":538012836,"beginTime":1727368251,"endTime":1783267199,"beginLon":124.264933,"beginLat":30.622615,"endLon":0.0,"endLat":0.0,"duration":15527.0}]}`))
+	}))
+	defer server.Close()
+
+	extractor := &Extractor{
+		client:          server.Client(),
+		endpointURL:     server.URL,
+		selectedOutputs: []string{"beginLon"},
+	}
+	output, err := extractor.Invoke(context.Background(), map[string]any{
+		inputAreaPoints: "124 30.4",
+		inputStartDate:  "2026-07-04",
+		inputEndDate:    "2026-07-06",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, []any{map[string]any{
+		"mmsi":     int64(538012836),
+		"beginLon": 124.264933,
+	}}, output[outputTurnbackEventDetails])
+}
+
+func TestDetailOutputTypeUsesSelectedFieldsAndRequiresMMSI(t *testing.T) {
+	outputType := detailOutputType([]string{"duration", "unknown"})
+	require.NotNil(t, outputType.ElemTypeInfo)
+	assert.Equal(t, []string{"duration", "mmsi"}, mapKeys(outputType.ElemTypeInfo.Properties))
 }
 
 func TestEndpointURLUsesConfiguredBaseURL(t *testing.T) {
@@ -178,4 +211,13 @@ func TestExtractorInvokeEmptyDatas(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, []any{}, output[outputTurnbackEventDetails])
+}
+
+func mapKeys(values map[string]*vo.TypeInfo) []string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+	return keys
 }

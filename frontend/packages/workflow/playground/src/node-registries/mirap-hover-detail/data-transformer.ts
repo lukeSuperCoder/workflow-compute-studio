@@ -20,15 +20,31 @@ import { type NodeDataDTO, type ValueExpression } from '@coze-workflow/base';
 
 import { getInputIsEmpty } from '../trigger-upsert/utils';
 import { type FormData } from './types';
-import { DEFAULT_INPUT_PARAMETERS, createOutputs } from './constants';
+import {
+  DEFAULT_INPUT_PARAMETERS,
+  DEFAULT_SELECTED_OUTPUTS,
+  createOutputs,
+  normalizeSelectedOutputs,
+} from './constants';
+
+const resolveSelectedOutputs = (raw: unknown): string[] => {
+  if (Array.isArray(raw) && raw.length > 0) {
+    return normalizeSelectedOutputs(
+      raw.filter((value): value is string => typeof value === 'string'),
+    );
+  }
+  return DEFAULT_SELECTED_OUTPUTS;
+};
 
 export const transformOnInit = (value: NodeDataDTO, context): FormData => {
   if (!value) {
+    const selectedOutputs = DEFAULT_SELECTED_OUTPUTS;
     return {
       inputs: {
         inputParameters: DEFAULT_INPUT_PARAMETERS,
+        selectedOutputs,
       },
-      outputs: createOutputs(),
+      outputs: createOutputs(selectedOutputs),
     } as unknown as FormData;
   }
 
@@ -40,9 +56,13 @@ export const transformOnInit = (value: NodeDataDTO, context): FormData => {
     );
   });
 
+  const selectedOutputs = resolveSelectedOutputs(
+    (value.inputs as Record<string, unknown> | undefined)?.selectedOutputs,
+  );
+
   return {
     ...(value ?? {}),
-    outputs: createOutputs(value.outputs),
+    outputs: createOutputs(selectedOutputs, value.outputs),
     inputs: {
       ...omit(value.inputs ?? {}, ['inputParameters', 'selectedOutputs']),
       inputParameters: {
@@ -54,6 +74,7 @@ export const transformOnInit = (value: NodeDataDTO, context): FormData => {
         start_date: inputParameters.start_date ?? inputParameters.startdate,
         end_date: inputParameters.end_date ?? inputParameters.enddate,
       },
+      selectedOutputs,
     },
   } as unknown as FormData;
 };
@@ -69,12 +90,15 @@ export const transformOnSubmit = (value: FormData, context): NodeDataDTO => {
       )?.input,
     }));
 
+  const selectedOutputs = resolveSelectedOutputs(value.inputs?.selectedOutputs);
+
   return {
     ...omit(value, ['inputs']),
-    outputs: createOutputs(value.outputs),
+    outputs: createOutputs(selectedOutputs, value.outputs),
     inputs: {
       ...omit(value.inputs ?? {}, ['inputParameters', 'selectedOutputs']),
       inputParameters,
+      selectedOutputs,
     },
   } as unknown as NodeDataDTO;
 };

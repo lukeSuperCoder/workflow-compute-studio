@@ -48,8 +48,28 @@ const (
 
 const defaultBaseURL = "https://mirap-test.elane.com"
 
+var allDetailFields = []string{
+	"mmsi", "beginTime", "endTime", "beginLon", "beginLat", "endLon", "endLat", "duration",
+}
+
+var requiredDetailFields = map[string]struct{}{
+	"mmsi": {},
+}
+
+var detailFieldTypes = map[string]*vo.TypeInfo{
+	"mmsi":      {Type: vo.DataTypeInteger},
+	"beginTime": {Type: vo.DataTypeInteger},
+	"endTime":   {Type: vo.DataTypeInteger},
+	"beginLon":  {Type: vo.DataTypeNumber},
+	"beginLat":  {Type: vo.DataTypeNumber},
+	"endLon":    {Type: vo.DataTypeNumber},
+	"endLat":    {Type: vo.DataTypeNumber},
+	"duration":  {Type: vo.DataTypeNumber},
+}
+
 type Config struct {
-	EndpointURL string `json:"endpoint_url,omitempty"`
+	EndpointURL     string   `json:"endpoint_url,omitempty"`
+	SelectedOutputs []string `json:"selected_outputs,omitempty"`
 }
 
 func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*schema.NodeSchema, error) {
@@ -65,22 +85,8 @@ func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*
 	}
 
 	c.EndpointURL = endpointURL()
-	ns.SetOutputType(outputTurnbackEventDetails, &vo.TypeInfo{
-		Type: vo.DataTypeArray,
-		ElemTypeInfo: &vo.TypeInfo{
-			Type: vo.DataTypeObject,
-			Properties: map[string]*vo.TypeInfo{
-				"mmsi":      {Type: vo.DataTypeInteger},
-				"beginTime": {Type: vo.DataTypeInteger},
-				"endTime":   {Type: vo.DataTypeInteger},
-				"beginLon":  {Type: vo.DataTypeNumber},
-				"beginLat":  {Type: vo.DataTypeNumber},
-				"endLon":    {Type: vo.DataTypeNumber},
-				"endLat":    {Type: vo.DataTypeNumber},
-				"duration":  {Type: vo.DataTypeNumber},
-			},
-		},
-	})
+	c.SelectedOutputs = readSelectedOutputs(n)
+	ns.SetOutputType(outputTurnbackEventDetails, detailOutputType(c.SelectedOutputs))
 
 	return ns, nil
 }
@@ -91,8 +97,9 @@ func (c *Config) Build(_ context.Context, _ *schema.NodeSchema, _ ...schema.Buil
 		url = endpointURL()
 	}
 	return &Extractor{
-		client:      &http.Client{Timeout: 120 * time.Second},
-		endpointURL: url,
+		client:          &http.Client{Timeout: 120 * time.Second},
+		endpointURL:     url,
+		selectedOutputs: c.SelectedOutputs,
 	}, nil
 }
 
@@ -105,8 +112,9 @@ func endpointURL() string {
 }
 
 type Extractor struct {
-	client      *http.Client
-	endpointURL string
+	client          *http.Client
+	endpointURL     string
+	selectedOutputs []string
 }
 
 type requestBody struct {
@@ -187,23 +195,77 @@ func (e *Extractor) Invoke(ctx context.Context, input map[string]any) (map[strin
 	}
 
 	details := make([]any, 0, len(parsed.Datas))
+	selected := effectiveSelected(e.selectedOutputs)
 	for i := range parsed.Datas {
-		detail := parsed.Datas[i]
-		details = append(details, map[string]any{
-			"mmsi":      detail.MMSI,
-			"beginTime": detail.BeginTime,
-			"endTime":   detail.EndTime,
-			"beginLon":  detail.BeginLon,
-			"beginLat":  detail.BeginLat,
-			"endLon":    detail.EndLon,
-			"endLat":    detail.EndLat,
-			"duration":  detail.Duration,
-		})
+		details = append(details, parsed.Datas[i].toMap(selected))
 	}
 
 	return map[string]any{
 		outputTurnbackEventDetails: details,
 	}, nil
+}
+
+func readSelectedOutputs(n *vo.Node) []string {
+	if n == nil || n.Data.Inputs == nil || n.Data.Inputs.MirapOutputs == nil {
+		return nil
+	}
+	return n.Data.Inputs.MirapOutputs.SelectedOutputs
+}
+
+func effectiveSelected(selected []string) []string {
+	if len(selected) == 0 {
+		return allDetailFields
+	}
+
+	chosen := make(map[string]struct{}, len(selected)+len(requiredDetailFields))
+	for _, name := range selected {
+		chosen[name] = struct{}{}
+	}
+	for name := range requiredDetailFields {
+		chosen[name] = struct{}{}
+	}
+
+	out := make([]string, 0, len(chosen))
+	for _, name := range allDetailFields {
+		if _, ok := chosen[name]; ok {
+			out = append(out, name)
+		}
+	}
+	return out
+}
+
+func detailOutputType(selected []string) *vo.TypeInfo {
+	properties := make(map[string]*vo.TypeInfo)
+	for _, name := range effectiveSelected(selected) {
+		properties[name] = detailFieldTypes[name]
+	}
+	return &vo.TypeInfo{
+		Type: vo.DataTypeArray,
+		ElemTypeInfo: &vo.TypeInfo{
+			Type:       vo.DataTypeObject,
+			Properties: properties,
+		},
+	}
+}
+
+func (d turnbackEventDetail) toMap(selected []string) map[string]any {
+	all := map[string]any{
+		"mmsi":      d.MMSI,
+		"beginTime": d.BeginTime,
+		"endTime":   d.EndTime,
+		"beginLon":  d.BeginLon,
+		"beginLat":  d.BeginLat,
+		"endLon":    d.EndLon,
+		"endLat":    d.EndLat,
+		"duration":  d.Duration,
+	}
+	out := make(map[string]any, len(selected))
+	for _, name := range selected {
+		if value, ok := all[name]; ok {
+			out[name] = value
+		}
+	}
+	return out
 }
 
 func stringInput(input map[string]any, keys ...string) string {

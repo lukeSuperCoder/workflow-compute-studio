@@ -123,4 +123,40 @@ describe('mirap mmsi set utils', () => {
       { name: 'length', type: ViewVariableType.Number },
     ]);
   });
+
+  it('does not resurrect fields hidden by the upstream HTTP selection', async () => {
+    const { VariableTypeDTO, ViewVariableType } = await import(
+      '@coze-workflow/base'
+    );
+    const { extractArrayObjectFields } = await import('../utils');
+
+    const fields = extractArrayObjectFields(
+      undefined,
+      {
+        name: 'turnback_event_details',
+        type: VariableTypeDTO.list,
+        schema: {
+          type: VariableTypeDTO.object,
+          schema: [
+            { name: 'mmsi', type: VariableTypeDTO.integer },
+            { name: 'beginTime', type: VariableTypeDTO.integer },
+            { name: 'duration', type: VariableTypeDTO.float },
+          ],
+        },
+      },
+      {
+        name: 'turnback_event_details',
+        type: ViewVariableType.ArrayObject,
+        children: [
+          { name: 'mmsi', type: ViewVariableType.Integer },
+          { name: 'duration', type: ViewVariableType.Number },
+        ],
+      },
+    );
+
+    expect(fields).toEqual([
+      { name: 'mmsi', type: ViewVariableType.Integer },
+      { name: 'duration', type: ViewVariableType.Number },
+    ]);
+  });
 });

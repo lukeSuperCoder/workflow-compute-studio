@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-import { type NodeDataDTO, type ValueExpression } from '@coze-workflow/base';
+package vo
 
-export interface FormData extends Omit<NodeDataDTO, 'inputs'> {
-  inputs: {
-    inputParameters: Record<string, ValueExpression>;
-    selectedOutputs: string[];
-  };
+import (
+	"encoding/json"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestInputsUnmarshalMirapSelectedOutputs(t *testing.T) {
+	var inputs Inputs
+	require.NoError(t, json.Unmarshal(
+		[]byte(`{"selectedOutputs":["mmsi","duration"]}`),
+		&inputs,
+	))
+
+	require.NotNil(t, inputs.MirapOutputs)
+	assert.Equal(t, []string{"mmsi", "duration"}, inputs.SelectedOutputs)
 }

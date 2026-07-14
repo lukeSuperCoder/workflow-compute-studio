@@ -29,6 +29,7 @@ import {
 import { type FormData } from './types';
 import { FormRender } from './form';
 import { transformOnInit, transformOnSubmit } from './data-transformer';
+import { SELECTED_OUTPUTS_PATH } from './constants';
 
 const dateRule = /^\d{4}-\d{2}-\d{2}$/;
 const areaPointsPath = 'inputs.inputParameters.area_points';
@@ -50,6 +51,12 @@ const validateDateInput = params => {
   }
 };
 
+const validateSelectedOutputs = params => {
+  if (!Array.isArray(params.value) || !params.value.includes('mmsi')) {
+    return '输出字段必须包含 mmsi';
+  }
+};
+
 export const MIRAP_HOVER_DETAIL_FORM_META: FormMetaV2<FormData> = {
   render: () => <FormRender />,
 
@@ -60,6 +67,7 @@ export const MIRAP_HOVER_DETAIL_FORM_META: FormMetaV2<FormData> = {
     [areaPointsPath]: validateRequiredInput,
     [startDatePath]: validateDateInput,
     [endDatePath]: validateDateInput,
+    [SELECTED_OUTPUTS_PATH]: validateSelectedOutputs,
   },
 
   effect: {

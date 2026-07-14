@@ -43,6 +43,7 @@ import (
 	_continue "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/continue"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapareaship"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/miraphoverdetail"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/miraphttpapi"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiextractor"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiset"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapstaycalc"
@@ -610,7 +611,7 @@ type nodeAdaptorEntry struct {
 // allNodeAdaptorEntries returns the Mirap workflow catalogue. Fresh closures are
 // returned so each registration provides a brand new Config instance per node.
 func allNodeAdaptorEntries() []nodeAdaptorEntry {
-	return []nodeAdaptorEntry{
+	entries := []nodeAdaptorEntry{
 		{entity.NodeTypeEntry, func() nodes.NodeAdaptor { return &entry.Config{} }, nil},
 		{entity.NodeTypeSelector, func() nodes.NodeAdaptor { return &selector.Config{} }, func() nodes.BranchAdaptor { return &selector.Config{} }},
 		{entity.NodeTypeBatch, func() nodes.NodeAdaptor { return &batch.Config{} }, nil},
@@ -635,6 +636,11 @@ func allNodeAdaptorEntries() []nodeAdaptorEntry {
 		{entity.NodeTypeMirapMMSIExtractor, func() nodes.NodeAdaptor { return &mirapmmsiextractor.Config{} }, nil},
 		{entity.NodeTypeLoop, func() nodes.NodeAdaptor { return &loop.Config{} }, nil},
 	}
+	for _, spec := range miraphttpapi.Specs {
+		spec := spec
+		entries = append(entries, nodeAdaptorEntry{spec.NodeType, func() nodes.NodeAdaptor { return miraphttpapi.NewConfig(spec) }, nil})
+	}
+	return entries
 }
 
 func registerNodeAdaptors(set map[entity.NodeType]bool) {

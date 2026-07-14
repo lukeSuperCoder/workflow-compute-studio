@@ -29,6 +29,7 @@ import {
   MIRAP_MMSI_UNION_NODE_REGISTRY,
 } from '@/node-registries/mirap-mmsi-set';
 import { MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY } from '@/node-registries/mirap-mmsi-extractor';
+import { MIRAP_HTTP_API_NODE_REGISTRIES } from '@/node-registries/mirap-http-api';
 import { MIRAP_HOVER_DETAIL_NODE_REGISTRY } from '@/node-registries/mirap-hover-detail';
 import { MIRAP_AREA_SHIP_NODE_REGISTRY } from '@/node-registries/mirap-area-ship';
 import { LOOP_NODE_REGISTRY } from '@/node-registries/loop';
@@ -62,6 +63,7 @@ export const MIRAP_NODE_REGISTRIES = [
   MIRAP_MMSI_UNION_NODE_REGISTRY,
   MIRAP_MMSI_DIFFERENCE_NODE_REGISTRY,
   MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY,
+  ...MIRAP_HTTP_API_NODE_REGISTRIES,
   LOOP_NODE_REGISTRY,
   SET_VARIABLE_NODE_REGISTRY,
   CONTINUE_NODE_REGISTRY,

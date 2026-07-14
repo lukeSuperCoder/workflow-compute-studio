@@ -39,6 +39,7 @@ export {
   MIRAP_MMSI_UNION_NODE_REGISTRY,
 } from './mirap-mmsi-set';
 export { MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY } from './mirap-mmsi-extractor';
+export { MIRAP_HTTP_API_NODE_REGISTRIES } from './mirap-http-api';
 export { OUTPUT_NODE_REGISTRY } from './output';
 export { QUESTION_NODE_REGISTRY } from './question';
 export { START_NODE_REGISTRY } from './start';

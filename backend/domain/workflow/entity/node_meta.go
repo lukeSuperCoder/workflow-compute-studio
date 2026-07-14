@@ -196,6 +196,25 @@ const (
 	NodeTypeMirapMMSIDifference        NodeType = "MirapMMSIDifference"
 	NodeTypeMirapMMSIExtractor         NodeType = "MirapMMSIExtractor"
 	NodeTypeMirapHoverDetail           NodeType = "MirapHoverDetail"
+	NodeTypeMirapBogusFilter           NodeType = "MirapBogusFilter"
+	NodeTypeMirapBogusDetail           NodeType = "MirapBogusDetail"
+	NodeTypeMirapHoverFilter           NodeType = "MirapHoverFilter"
+	NodeTypeMirapHoverEventDetail      NodeType = "MirapHoverEventDetail"
+	NodeTypeMirapLeanFilter            NodeType = "MirapLeanFilter"
+	NodeTypeMirapLeanDetail            NodeType = "MirapLeanDetail"
+	NodeTypeMirapRemainFilter          NodeType = "MirapRemainFilter"
+	NodeTypeMirapRemainDetail          NodeType = "MirapRemainDetail"
+	NodeTypeMirapRetraceFilter         NodeType = "MirapRetraceFilter"
+	NodeTypeMirapSignalSpoofingDetail  NodeType = "MirapSignalSpoofingDetail"
+	NodeTypeMirapFakeSignalRecover     NodeType = "MirapFakeSignalRecover"
+	NodeTypeMirapTrajectoryQuality     NodeType = "MirapTrajectoryQuality"
+	NodeTypeMirapInterruptFilter       NodeType = "MirapInterruptFilter"
+	NodeTypeMirapRepetitionFilter      NodeType = "MirapRepetitionFilter"
+	NodeTypeMirapInterruptDetail       NodeType = "MirapInterruptDetail"
+	NodeTypeMirapLowVelocityDetail     NodeType = "MirapLowVelocityDetail"
+	NodeTypeMirapSpeedFilter           NodeType = "MirapSpeedFilter"
+	NodeTypeMirapNoRegularFilter       NodeType = "MirapNoRegularFilter"
+	NodeTypeMirapOnlineRatioFilter     NodeType = "MirapOnlineRatioFilter"
 )
 
 const (
@@ -987,6 +1006,101 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSName:        "Knowledge delete",
 		EnUSDescription: "The delete node can delete a document in knowledge base.",
 	},
+	NodeTypeMirapBogusFilter: {
+		ID: 1101, Key: NodeTypeMirapBogusFilter, DisplayKey: "MirapBogusFilter", Name: "套牌船事件筛选（日）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapBogusFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapBogusDetail: {
+		ID: 1102, Key: NodeTypeMirapBogusDetail, DisplayKey: "MirapBogusDetail", Name: "套牌事件明细（日）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapBogusDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapHoverFilter: {
+		ID: 1103, Key: NodeTypeMirapHoverFilter, DisplayKey: "MirapHoverFilter", Name: "徘徊事件筛选", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapHoverFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapHoverEventDetail: {
+		ID: 1104, Key: NodeTypeMirapHoverEventDetail, DisplayKey: "MirapHoverEventDetail", Name: "徘徊事件明细", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapHoverEventDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapLeanFilter: {
+		ID: 1105, Key: NodeTypeMirapLeanFilter, DisplayKey: "MirapLeanFilter", Name: "研判搭靠事件筛选", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapLeanFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapLeanDetail: {
+		ID: 1106, Key: NodeTypeMirapLeanDetail, DisplayKey: "MirapLeanDetail", Name: "研判搭靠事件明细", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapLeanDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapRemainFilter: {
+		ID: 1107, Key: NodeTypeMirapRemainFilter, DisplayKey: "MirapRemainFilter", Name: "停留事件筛选", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapRemainFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapRemainDetail: {
+		ID: 1108, Key: NodeTypeMirapRemainDetail, DisplayKey: "MirapRemainDetail", Name: "停留事件明细", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapRemainDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapRetraceFilter: {
+		ID: 1109, Key: NodeTypeMirapRetraceFilter, DisplayKey: "MirapRetraceFilter", Name: "折返事件筛选（日）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapRetraceFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapSignalSpoofingDetail: {
+		ID: 1111, Key: NodeTypeMirapSignalSpoofingDetail, DisplayKey: "MirapSignalSpoofingDetail", Name: "模拟信号明细（伪造信号）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapSignalSpoofingDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapFakeSignalRecover: {
+		ID: 1112, Key: NodeTypeMirapFakeSignalRecover, DisplayKey: "MirapFakeSignalRecover", Name: "伪造信号恢复查询", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapFakeSignalRecover", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapTrajectoryQuality: {
+		ID: 1113, Key: NodeTypeMirapTrajectoryQuality, DisplayKey: "MirapTrajectoryQuality", Name: "轨迹质量指数（日）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapTrajectoryQuality", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapInterruptFilter: {
+		ID: 1114, Key: NodeTypeMirapInterruptFilter, DisplayKey: "MirapInterruptFilter", Name: "信号消失事件筛选", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapInterruptFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapRepetitionFilter: {
+		ID: 1115, Key: NodeTypeMirapRepetitionFilter, DisplayKey: "MirapRepetitionFilter", Name: "信号复现事件筛选", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapRepetitionFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapInterruptDetail: {
+		ID: 1116, Key: NodeTypeMirapInterruptDetail, DisplayKey: "MirapInterruptDetail", Name: "信号消失复现事件明细", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapInterruptDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapLowVelocityDetail: {
+		ID: 1118, Key: NodeTypeMirapLowVelocityDetail, DisplayKey: "MirapLowVelocityDetail", Name: "低速事件明细", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapLowVelocityDetail", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapSpeedFilter: {
+		ID: 1119, Key: NodeTypeMirapSpeedFilter, DisplayKey: "MirapSpeedFilter", Name: "区域船舶速度事件（日）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapSpeedFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapNoRegularFilter: {
+		ID: 1120, Key: NodeTypeMirapNoRegularFilter, DisplayKey: "MirapNoRegularFilter", Name: "三无船", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapNoRegularFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
+	NodeTypeMirapOnlineRatioFilter: {
+		ID: 1121, Key: NodeTypeMirapOnlineRatioFilter, DisplayKey: "MirapOnlineRatioFilter", Name: "在线率筛选（日）", Category: "operator",
+		Desc: "MIRAP 接口算子", Color: "#3071F2", IconURI: "default_icon/workflow_icon/icon-http.jpg", SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{PreFillZero: true, PostFillNil: true}, EnUSName: "MirapOnlineRatioFilter", EnUSDescription: "MIRAP HTTP API operator.",
+	},
 	NodeTypeMirapAreaShipExtractor: {
 		ID:           1001,
 		Key:          NodeTypeMirapAreaShipExtractor,
@@ -1148,6 +1262,25 @@ var MirapNodeSet = map[NodeType]bool{
 	NodeTypeMirapMMSIUnion:             true,
 	NodeTypeMirapMMSIDifference:        true,
 	NodeTypeMirapMMSIExtractor:         true,
+	NodeTypeMirapBogusFilter:           true,
+	NodeTypeMirapBogusDetail:           true,
+	NodeTypeMirapHoverFilter:           true,
+	NodeTypeMirapHoverEventDetail:      true,
+	NodeTypeMirapLeanFilter:            true,
+	NodeTypeMirapLeanDetail:            true,
+	NodeTypeMirapRemainFilter:          true,
+	NodeTypeMirapRemainDetail:          true,
+	NodeTypeMirapRetraceFilter:         true,
+	NodeTypeMirapSignalSpoofingDetail:  true,
+	NodeTypeMirapFakeSignalRecover:     true,
+	NodeTypeMirapTrajectoryQuality:     true,
+	NodeTypeMirapInterruptFilter:       true,
+	NodeTypeMirapRepetitionFilter:      true,
+	NodeTypeMirapInterruptDetail:       true,
+	NodeTypeMirapLowVelocityDetail:     true,
+	NodeTypeMirapSpeedFilter:           true,
+	NodeTypeMirapNoRegularFilter:       true,
+	NodeTypeMirapOnlineRatioFilter:     true,
 }
 
 // IsMirapNode reports whether the given node type belongs to the Mirap whitelist.

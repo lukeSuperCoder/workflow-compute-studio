@@ -23,6 +23,7 @@ import { OutputContent } from '@/node-registries/output';
 import { MirapStayCalcContent } from '@/node-registries/mirap-stay-calc';
 import { MirapMMSISetContent } from '@/node-registries/mirap-mmsi-set';
 import { MirapMMSIExtractorContent } from '@/node-registries/mirap-mmsi-extractor';
+import { MirapHttpApiContent } from '@/node-registries/mirap-http-api';
 import { MirapHoverDetailContent } from '@/node-registries/mirap-hover-detail';
 import { MirapAreaShipContent } from '@/node-registries/mirap-area-ship';
 import { LoopContent } from '@/node-registries/loop';
@@ -68,6 +69,25 @@ const ContentMap = {
   [StandardNodeType.MirapMMSIUnion]: MirapMMSISetContent,
   [StandardNodeType.MirapMMSIDifference]: MirapMMSISetContent,
   [StandardNodeType.MirapMMSIExtractor]: MirapMMSIExtractorContent,
+  [StandardNodeType.MirapBogusFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapBogusDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapHoverFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapHoverEventDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapLeanFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapLeanDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapRemainFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapRemainDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapRetraceFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapSignalSpoofingDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapFakeSignalRecover]: MirapHttpApiContent,
+  [StandardNodeType.MirapTrajectoryQuality]: MirapHttpApiContent,
+  [StandardNodeType.MirapInterruptFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapRepetitionFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapInterruptDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapLowVelocityDetail]: MirapHttpApiContent,
+  [StandardNodeType.MirapSpeedFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapNoRegularFilter]: MirapHttpApiContent,
+  [StandardNodeType.MirapOnlineRatioFilter]: MirapHttpApiContent,
 };
 
 function UnsupportedLegacyContent() {

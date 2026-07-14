@@ -22,6 +22,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/entity/vo"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes"
 	"github.com/coze-dev/coze-studio/backend/infra/coderunner"
 	"github.com/coze-dev/coze-studio/backend/infra/coderunner/impl/direct"
 )
@@ -65,6 +67,41 @@ func TestRunnerInvokesFixedPythonCode(t *testing.T) {
 	}
 	if !strings.Contains(fake.request.Code, `",".join(values)`) {
 		t.Fatalf("fixed code does not join MMSI values: %s", fake.request.Code)
+	}
+}
+
+func TestConfigAdaptBackfillsArrayInputsFromCanvasEdges(t *testing.T) {
+	source := &vo.Node{
+		ID: "upstream-1",
+		Data: &vo.Data{Outputs: []any{&vo.Variable{
+			Name:   "ships",
+			Type:   vo.VariableTypeList,
+			Schema: &vo.Variable{Type: vo.VariableTypeObject},
+		}}},
+	}
+	target := &vo.Node{
+		ID: "extractor-1",
+		Data: &vo.Data{
+			Meta:    &vo.NodeMetaFE{Title: "提取 MMSI 集合"},
+			Inputs:  &vo.Inputs{InputParameters: []*vo.Param{}},
+			Outputs: []any{&vo.Variable{Name: "mmsis", Type: vo.VariableTypeString}},
+		},
+	}
+	canvas := &vo.Canvas{
+		Nodes: []*vo.Node{source, target},
+		Edges: []*vo.Edge{{SourceNodeID: source.ID, TargetNodeID: target.ID}},
+	}
+	config := &Config{}
+
+	_, err := config.Adapt(context.Background(), target, nodes.WithCanvas(canvas))
+	if err != nil {
+		t.Fatalf("Adapt() error = %v", err)
+	}
+	if len(config.InputNames) != 1 || config.InputNames[0] != "dataset_1" {
+		t.Fatalf("InputNames = %#v", config.InputNames)
+	}
+	if len(target.Data.Inputs.InputParameters) != 1 {
+		t.Fatalf("input parameters = %#v", target.Data.Inputs.InputParameters)
 	}
 }
 

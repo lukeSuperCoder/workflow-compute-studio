@@ -54,13 +54,14 @@ type Config struct {
 	InputNames []string `json:"inputNames,omitempty"`
 }
 
-func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*schema.NodeSchema, error) {
+func (c *Config) Adapt(_ context.Context, n *vo.Node, opts ...nodes.AdaptOption) (*schema.NodeSchema, error) {
 	ns := &schema.NodeSchema{
 		Key:     vo.NodeKey(n.ID),
 		Type:    entity.NodeTypeMirapMMSIExtractor,
 		Name:    n.Data.Meta.Title,
 		Configs: c,
 	}
+	backfillInputParametersFromCanvas(n, nodes.GetAdaptOptions(opts...).Canvas)
 	c.InputNames = c.InputNames[:0]
 	if n.Data == nil || n.Data.Inputs == nil || len(n.Data.Inputs.InputParameters) == 0 {
 		return nil, fmt.Errorf("at least one input result set is required")
@@ -77,6 +78,66 @@ func (c *Config) Adapt(_ context.Context, n *vo.Node, _ ...nodes.AdaptOption) (*
 		return nil, err
 	}
 	return ns, nil
+}
+
+func backfillInputParametersFromCanvas(n *vo.Node, canvas *vo.Canvas) {
+	if n == nil || n.Data == nil || n.Data.Inputs == nil || len(n.Data.Inputs.InputParameters) > 0 || canvas == nil {
+		return
+	}
+
+	nodeByID := make(map[string]*vo.Node, len(canvas.Nodes))
+	for _, node := range canvas.Nodes {
+		if node != nil {
+			nodeByID[node.ID] = node
+		}
+	}
+
+	for _, edge := range canvas.Edges {
+		if edge == nil || edge.TargetNodeID != n.ID {
+			continue
+		}
+		output := firstListOutput(nodeByID[edge.SourceNodeID])
+		if output == nil {
+			continue
+		}
+		name := fmt.Sprintf("dataset_%d", len(n.Data.Inputs.InputParameters)+1)
+		n.Data.Inputs.InputParameters = append(n.Data.Inputs.InputParameters, &vo.Param{
+			Name: name,
+			Input: &vo.BlockInput{
+				Type:       output.Type,
+				AssistType: output.AssistType,
+				Schema:     output.Schema,
+				Value: &vo.BlockInputValue{
+					Type: vo.BlockInputValueTypeRef,
+					Content: &vo.BlockInputReference{
+						BlockID: edge.SourceNodeID,
+						Name:    output.Name,
+						Source:  vo.RefSourceTypeBlockOutput,
+					},
+				},
+			},
+		})
+	}
+}
+
+func firstListOutput(n *vo.Node) *vo.Variable {
+	if n == nil || n.Data == nil {
+		return nil
+	}
+	var fallback *vo.Variable
+	for _, outputAny := range n.Data.Outputs {
+		output, err := vo.ParseVariable(outputAny)
+		if err != nil || output == nil || output.Type != vo.VariableTypeList {
+			continue
+		}
+		if output.Name == "ships" {
+			return output
+		}
+		if fallback == nil {
+			fallback = output
+		}
+	}
+	return fallback
 }
 
 func (c *Config) Build(_ context.Context, _ *schema.NodeSchema, _ ...schema.BuildOption) (any, error) {

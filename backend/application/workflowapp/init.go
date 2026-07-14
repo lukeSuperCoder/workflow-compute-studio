@@ -42,6 +42,8 @@ import (
 	"github.com/coze-dev/coze-studio/backend/infra/cache"
 	redisImpl "github.com/coze-dev/coze-studio/backend/infra/cache/impl/redis"
 	"github.com/coze-dev/coze-studio/backend/infra/checkpoint"
+	"github.com/coze-dev/coze-studio/backend/infra/coderunner"
+	"github.com/coze-dev/coze-studio/backend/infra/coderunner/impl/direct"
 	"github.com/coze-dev/coze-studio/backend/infra/idgen"
 	idgenImpl "github.com/coze-dev/coze-studio/backend/infra/idgen/impl/idgen"
 	mysqlImpl "github.com/coze-dev/coze-studio/backend/infra/orm/impl/mysql"
@@ -109,6 +111,7 @@ func Init(ctx context.Context) (*Dependencies, error) {
 		DomainNotifier:     eventBus,
 		Tos:                oss,
 		CPStore:            checkpoint.NewRedisStore(cacheCli),
+		CodeRunner:         newWorkflowCodeRunner(),
 		NodeSet:            entity.MirapNodeSet,
 	})
 	if err != nil {
@@ -125,6 +128,10 @@ func Init(ctx context.Context) (*Dependencies, error) {
 		Memory:   memorySVC,
 		Workflow: workflowSVC,
 	}, nil
+}
+
+func newWorkflowCodeRunner() coderunner.Runner {
+	return direct.NewRunner()
 }
 
 func seedDefaultAssets(ctx context.Context, st storage.Storage) {

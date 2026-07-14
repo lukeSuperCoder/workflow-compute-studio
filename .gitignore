@@ -66,5 +66,6 @@ values-dev.yaml
 
 *.tsbuildinfo
 .trae/*
+.superpowers/
 # Ignore documentation files
 /docs/mirap-api-guide.md

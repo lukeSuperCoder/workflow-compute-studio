@@ -31,9 +31,9 @@
 | 算子 | 区域船舶提取 | `1001` | `operator` |
 | 算子 | 低速事件筛选 | `1002` | `operator` |
 | 算子 | 折返事件明细 | `1003` | `operator` |
-| 算子业务逻辑 | MMSI 交集 | `2001` | `operator_logic` |
-| 算子业务逻辑 | MMSI 并集 | `2002` | `operator_logic` |
-| 算子业务逻辑 | MMSI 差集 | `2003` | `operator_logic` |
+| 算子业务逻辑 | 交集 | `2001` | `operator_logic` |
+| 算子业务逻辑 | 并集 | `2002` | `operator_logic` |
+| 算子业务逻辑 | 差集 | `2003` | `operator_logic` |
 
 节点 ID 仅改变类型身份。节点目录、表单、数据转换器、`node-test.ts`、后端 adaptor 和 runner 继续沿用当前实现。
 

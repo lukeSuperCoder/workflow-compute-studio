@@ -39,17 +39,17 @@ export const DEFAULT_RESULT_FIELDS: OutputFieldMeta[] = [
 export const OPERATION_META = {
   [MMSISetOperation.Intersection]: {
     nodeType: StandardNodeType.MirapMMSIIntersection,
-    title: 'MMSI 交集',
+    title: '交集',
     summary: '按 MMSI 取交集',
   },
   [MMSISetOperation.Union]: {
     nodeType: StandardNodeType.MirapMMSIUnion,
-    title: 'MMSI 并集',
+    title: '并集',
     summary: '按 MMSI 取并集',
   },
   [MMSISetOperation.Difference]: {
     nodeType: StandardNodeType.MirapMMSIDifference,
-    title: 'MMSI 差集',
+    title: '差集',
     summary: '按 MMSI 做差集',
   },
 } as const;

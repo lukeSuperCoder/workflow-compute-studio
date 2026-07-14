@@ -209,7 +209,7 @@ function WorkflowTable({
             <th>状态</th>
             <th>更新时间</th>
             <th>创建人</th>
-            <th />
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -240,8 +240,10 @@ function WorkflowTable({
               </td>
               <td>{workflow.creator?.name || '-'}</td>
               <td className="row-actions">
-                <Link to={`/workflows/${workflow.id}`}>打开</Link>
-                <Link to={`/workflows/${workflow.id}/versions`}>版本</Link>
+                <div className="row-actions-inner">
+                  <Link to={`/workflows/${workflow.id}`}>打开</Link>
+                  <Link to={`/workflows/${workflow.id}/versions`}>版本</Link>
+                </div>
               </td>
             </tr>
           ))}

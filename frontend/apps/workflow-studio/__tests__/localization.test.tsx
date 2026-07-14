@@ -166,6 +166,39 @@ describe('workflow-studio 中文界面', () => {
     });
   });
 
+  it('工作流列表操作列保持表格布局并显示表头', async () => {
+    apiMocks.listWorkflows.mockResolvedValue({
+      workflows: [
+        {
+          workflow_id: 'workflow-1',
+          name: '测试工作流',
+        },
+      ],
+      total: 1,
+    });
+
+    await act(async () => {
+      root.render(
+        <SessionContext.Provider
+          value={{ session, signIn: vi.fn(), signOut: vi.fn() }}
+        >
+          <MemoryRouter
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
+            <WorkflowListPage />
+          </MemoryRouter>
+        </SessionContext.Provider>,
+      );
+      await Promise.resolve();
+    });
+
+    const headers = Array.from(container.querySelectorAll('thead th'));
+    expect(headers.at(-1)?.textContent).toBe('操作');
+
+    const actionCell = container.querySelector('tbody td.row-actions');
+    expect(actionCell?.querySelector(':scope > .row-actions-inner')).not.toBeNull();
+  });
+
   it('版本页使用中文标题、表头和空状态', async () => {
     await act(async () => {
       root.render(

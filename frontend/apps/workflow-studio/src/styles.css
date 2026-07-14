@@ -360,7 +360,13 @@ tr:last-child td {
 }
 
 .row-actions {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.row-actions-inner {
   display: flex;
+  align-items: center;
   gap: 12px;
 }
 

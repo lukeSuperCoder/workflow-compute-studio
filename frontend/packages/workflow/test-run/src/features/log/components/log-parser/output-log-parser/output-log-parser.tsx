@@ -14,23 +14,32 @@
  * limitations under the License.
  */
 
+import { useMemo, useState, type FC } from 'react';
+
 import { isObject } from 'lodash-es';
 import { type FlowNodeEntity } from '@flowgram-adapter/free-layout-editor';
 import { StandardNodeType } from '@coze-workflow/base/types';
 import { I18n } from '@coze-arch/i18n';
-import { NodeExeStatus } from '@coze-arch/bot-api/workflow_api';
 import { IconCozWarningCircle } from '@coze-arch/coze-design/icons';
-import { SegmentTab, Tag, Typography, Tooltip } from '@coze-arch/coze-design';
+import {
+  Button,
+  SegmentTab,
+  Tag,
+  Typography,
+  Tooltip,
+} from '@coze-arch/coze-design';
+import { NodeExeStatus } from '@coze-arch/bot-api/workflow_api';
 
 import { LogWrap } from '../log-wrap';
 import { DataViewer } from '../../data-viewer';
 import { type OutputLog } from '../../../types';
 import { useOutputLog, TabValue } from './use-output-log';
+import { getPreviewArray, TablePreviewModal } from './table-preview-modal';
 import { SyncOutputToNode } from './sync-output-to-node';
 
 import css from './output-log-parser.module.less';
 
-const MockInfo: React.FC<{ log: OutputLog }> = ({ log }) => {
+const MockInfo: FC<{ log: OutputLog }> = ({ log }) => {
   const { mockInfo } = log;
 
   if (!mockInfo?.isHit) {
@@ -68,13 +77,15 @@ const LLMTabTooltip = () => (
   </Tooltip>
 );
 
-export const OutputLogParser: React.FC<{
+export const OutputLogParser: FC<{
   log: OutputLog;
   node?: FlowNodeEntity;
   nodeStatus?: NodeExeStatus;
   onPreview?: (value: string, path: string[]) => void;
 }> = ({ log, node, nodeStatus, onPreview }) => {
   const { showRawOutput, tab, data, options, setTab } = useOutputLog(log);
+  const [tablePreviewVisible, setTablePreviewVisible] = useState(false);
+  const previewData = useMemo(() => getPreviewArray(data), [data]);
 
   const isLLM = log.nodeType === 'LLM';
 
@@ -94,6 +105,15 @@ export const OutputLogParser: React.FC<{
       labelExtra={<MockInfo log={log} />}
       extra={
         <div className={css.extra}>
+          {previewData ? (
+            <Button
+              size="mini"
+              color="primary"
+              onClick={() => setTablePreviewVisible(true)}
+            >
+              {I18n.t('creat_project_use_template_preview')}
+            </Button>
+          ) : null}
           {showCodeSync ? (
             <SyncOutputToNode
               node={node}
@@ -130,6 +150,13 @@ export const OutputLogParser: React.FC<{
           onPreview={onPreview}
           className="!min-h-[100px]"
         />
+        {previewData ? (
+          <TablePreviewModal
+            visible={tablePreviewVisible}
+            data={previewData}
+            onClose={() => setTablePreviewVisible(false)}
+          />
+        ) : null}
       </div>
     </LogWrap>
   );

@@ -128,6 +128,42 @@ func TestRunnerUnionRealignsFieldsWhenSelectedGroupsAreMismatched(t *testing.T) 
 	}, result[2])
 }
 
+func TestRunnerUnionKeepsValuesWhenEveryInputHasNullableSchemaFields(t *testing.T) {
+	runner := &Runner{
+		operation: OpUnion,
+		selectedOutputGroups: []SelectedOutputGroup{
+			{InputName: "dataset_1", Fields: []string{"mmsi", "age", "enName"}},
+			{InputName: "dataset_2", Fields: []string{"mmsi", "beginTime", "countrycode"}},
+		},
+	}
+
+	output, err := runner.Invoke(context.Background(), map[string]any{
+		"dataset_1": []any{
+			map[string]any{
+				"mmsi": "105512959", "age": nil, "enName": nil,
+				"beginTime": 1710000000, "countrycode": "CN",
+			},
+		},
+		"dataset_2": []any{
+			map[string]any{
+				"mmsi": "105512959", "age": 8, "enName": "TEST SHIP",
+				"beginTime": nil, "countrycode": nil,
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, []any{
+		map[string]any{
+			"mmsi":        "105512959",
+			"age":         8,
+			"enName":      "TEST SHIP",
+			"beginTime":   1710000000,
+			"countrycode": "CN",
+		},
+	}, output[outputResult])
+}
+
 func TestRunnerUnionAcceptsWrappedAndTypedObjectArrays(t *testing.T) {
 	runner := &Runner{
 		operation: OpUnion,

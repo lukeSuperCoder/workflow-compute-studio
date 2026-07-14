@@ -470,19 +470,16 @@ func indexItems(name string, fields []string, items []any) (*inputIndex, error) 
 			continue
 		}
 
-		projected := make(map[string]any, len(selected))
-		for _, field := range selected {
-			if field == "mmsi" {
-				projected[field] = mmsi
-				continue
-			}
-			if value, ok := record[field]; ok {
-				projected[field] = value
-			} else {
-				projected[field] = nil
-			}
+		// Keep the complete record in the index. The selected fields determine
+		// the final output columns, while values may come from any input that
+		// contains the same MMSI. Projecting here can discard a non-null value
+		// when persisted field groups are out of sync with their input order.
+		indexedRecord := make(map[string]any, len(record))
+		for field, value := range record {
+			indexedRecord[field] = value
 		}
-		idx.records[mmsi] = projected
+		indexedRecord["mmsi"] = mmsi
+		idx.records[mmsi] = indexedRecord
 		idx.keys = append(idx.keys, mmsi)
 	}
 

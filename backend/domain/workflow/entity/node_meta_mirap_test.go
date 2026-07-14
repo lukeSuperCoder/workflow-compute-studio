@@ -50,6 +50,7 @@ func TestMirapCustomNodeMetadata(t *testing.T) {
 		{NodeTypeMirapMMSIIntersection, 2001, "operator_logic"},
 		{NodeTypeMirapMMSIUnion, 2002, "operator_logic"},
 		{NodeTypeMirapMMSIDifference, 2003, "operator_logic"},
+		{NodeTypeMirapMMSIExtractor, 2004, "operator_logic"},
 	}
 	seen := map[int64]NodeType{}
 	for _, tt := range tests {
@@ -133,6 +134,7 @@ func TestMirapNodeSetIncludes(t *testing.T) {
 		NodeTypeMirapMMSIIntersection,
 		NodeTypeMirapMMSIUnion,
 		NodeTypeMirapMMSIDifference,
+		NodeTypeMirapMMSIExtractor,
 	}
 	for _, nt := range included {
 		if !IsMirapNode(nt) {

@@ -22,6 +22,7 @@ import { SetVariableContent } from '@/node-registries/set-variable';
 import { OutputContent } from '@/node-registries/output';
 import { MirapStayCalcContent } from '@/node-registries/mirap-stay-calc';
 import { MirapMMSISetContent } from '@/node-registries/mirap-mmsi-set';
+import { MirapMMSIExtractorContent } from '@/node-registries/mirap-mmsi-extractor';
 import { MirapHoverDetailContent } from '@/node-registries/mirap-hover-detail';
 import { MirapAreaShipContent } from '@/node-registries/mirap-area-ship';
 import { LoopContent } from '@/node-registries/loop';
@@ -66,6 +67,7 @@ const ContentMap = {
   [StandardNodeType.MirapMMSIIntersection]: MirapMMSISetContent,
   [StandardNodeType.MirapMMSIUnion]: MirapMMSISetContent,
   [StandardNodeType.MirapMMSIDifference]: MirapMMSISetContent,
+  [StandardNodeType.MirapMMSIExtractor]: MirapMMSIExtractorContent,
 };
 
 function UnsupportedLegacyContent() {

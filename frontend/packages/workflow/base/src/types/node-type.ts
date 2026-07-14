@@ -110,6 +110,7 @@ export enum StandardNodeType {
   MirapMMSIIntersection = '2001',
   MirapMMSIUnion = '2002',
   MirapMMSIDifference = '2003',
+  MirapMMSIExtractor = '2004',
 }
 
 /**
@@ -158,8 +159,9 @@ export const NODE_ORDER = {
   [StandardNodeType.MirapMMSIIntersection]: 32,
   [StandardNodeType.MirapMMSIUnion]: 33,
   [StandardNodeType.MirapMMSIDifference]: 34,
-  [StandardNodeType.MirapStayCalculation]: 35,
-  [StandardNodeType.MirapHoverDetail]: 36,
+  [StandardNodeType.MirapMMSIExtractor]: 35,
+  [StandardNodeType.MirapStayCalculation]: 36,
+  [StandardNodeType.MirapHoverDetail]: 37,
 };
 
 /** session class node */

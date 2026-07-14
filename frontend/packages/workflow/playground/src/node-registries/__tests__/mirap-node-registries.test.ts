@@ -29,6 +29,7 @@ import {
   MIRAP_MMSI_INTERSECTION_NODE_REGISTRY,
   MIRAP_MMSI_UNION_NODE_REGISTRY,
 } from '../mirap-mmsi-set/node-registry';
+import { MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY } from '../mirap-mmsi-extractor/node-registry';
 import { MIRAP_HOVER_DETAIL_NODE_REGISTRY } from '../mirap-hover-detail/node-registry';
 import { MIRAP_AREA_SHIP_NODE_REGISTRY } from '../mirap-area-ship/node-registry';
 
@@ -68,6 +69,9 @@ vi.mock('../mirap-hover-detail/form-meta', () => ({
 vi.mock('../mirap-mmsi-set/form-meta', () => ({
   createMMSISetFormMeta: () => ({}),
 }));
+vi.mock('../mirap-mmsi-extractor/form-meta', () => ({
+  MMSI_EXTRACTOR_FORM_META: {},
+}));
 
 describe('Mirap node registry persistence contract', () => {
   const registries = [
@@ -77,6 +81,7 @@ describe('Mirap node registry persistence contract', () => {
     MIRAP_MMSI_INTERSECTION_NODE_REGISTRY,
     MIRAP_MMSI_UNION_NODE_REGISTRY,
     MIRAP_MMSI_DIFFERENCE_NODE_REGISTRY,
+    MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY,
   ];
 
   it.each([
@@ -89,6 +94,7 @@ describe('Mirap node registry persistence contract', () => {
     ],
     [MIRAP_MMSI_UNION_NODE_REGISTRY, StandardNodeType.MirapMMSIUnion],
     [MIRAP_MMSI_DIFFERENCE_NODE_REGISTRY, StandardNodeType.MirapMMSIDifference],
+    [MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY, StandardNodeType.MirapMMSIExtractor],
   ])('keeps registry type and nodeDTOType aligned', (registry, nodeType) => {
     expect(registry.type).toBe(nodeType);
     expect(registry.meta.nodeDTOType).toBe(nodeType);

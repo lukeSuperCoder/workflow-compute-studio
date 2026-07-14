@@ -194,6 +194,7 @@ const (
 	NodeTypeMirapMMSIIntersection      NodeType = "MirapMMSIIntersection"
 	NodeTypeMirapMMSIUnion             NodeType = "MirapMMSIUnion"
 	NodeTypeMirapMMSIDifference        NodeType = "MirapMMSIDifference"
+	NodeTypeMirapMMSIExtractor         NodeType = "MirapMMSIExtractor"
 	NodeTypeMirapHoverDetail           NodeType = "MirapHoverDetail"
 )
 
@@ -1054,6 +1055,23 @@ var NodeTypeMetas = map[NodeType]*NodeTypeMeta{
 		EnUSName:        "difference",
 		EnUSDescription: "Subtract ship result sets from a main result set by MMSI.",
 	},
+	NodeTypeMirapMMSIExtractor: {
+		ID:           2004,
+		Key:          NodeTypeMirapMMSIExtractor,
+		DisplayKey:   "MirapMMSIExtractor",
+		Name:         "提取 MMSI 集合",
+		Category:     "operator_logic",
+		Desc:         "从多个船舶结果集中提取并去重 MMSI",
+		Color:        "#3071F2",
+		IconURI:      "default_icon/workflow_icon/icon-code.jpg",
+		SupportBatch: false,
+		ExecutableMeta: ExecutableMeta{
+			PreFillZero: true,
+			PostFillNil: true,
+		},
+		EnUSName:        "MMSI extractor",
+		EnUSDescription: "Extract and deduplicate MMSI values from ship result sets.",
+	},
 	NodeTypeMirapStayCalculation: {
 		ID:           1002,
 		Key:          NodeTypeMirapStayCalculation,
@@ -1129,6 +1147,7 @@ var MirapNodeSet = map[NodeType]bool{
 	NodeTypeMirapMMSIIntersection:      true,
 	NodeTypeMirapMMSIUnion:             true,
 	NodeTypeMirapMMSIDifference:        true,
+	NodeTypeMirapMMSIExtractor:         true,
 }
 
 // IsMirapNode reports whether the given node type belongs to the Mirap whitelist.

@@ -43,6 +43,7 @@ import (
 	_continue "github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/loop/continue"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapareaship"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/miraphoverdetail"
+	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiextractor"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapmmsiset"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/mirapstaycalc"
 	"github.com/coze-dev/coze-studio/backend/domain/workflow/internal/nodes/receiver"
@@ -631,6 +632,7 @@ func allNodeAdaptorEntries() []nodeAdaptorEntry {
 		{entity.NodeTypeMirapMMSIIntersection, func() nodes.NodeAdaptor { return mirapmmsiset.NewIntersectionConfig() }, nil},
 		{entity.NodeTypeMirapMMSIUnion, func() nodes.NodeAdaptor { return mirapmmsiset.NewUnionConfig() }, nil},
 		{entity.NodeTypeMirapMMSIDifference, func() nodes.NodeAdaptor { return mirapmmsiset.NewDifferenceConfig() }, nil},
+		{entity.NodeTypeMirapMMSIExtractor, func() nodes.NodeAdaptor { return &mirapmmsiextractor.Config{} }, nil},
 		{entity.NodeTypeLoop, func() nodes.NodeAdaptor { return &loop.Config{} }, nil},
 	}
 }

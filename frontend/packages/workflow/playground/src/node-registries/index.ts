@@ -38,6 +38,7 @@ export {
   MIRAP_MMSI_INTERSECTION_NODE_REGISTRY,
   MIRAP_MMSI_UNION_NODE_REGISTRY,
 } from './mirap-mmsi-set';
+export { MIRAP_MMSI_EXTRACTOR_NODE_REGISTRY } from './mirap-mmsi-extractor';
 export { OUTPUT_NODE_REGISTRY } from './output';
 export { QUESTION_NODE_REGISTRY } from './question';
 export { START_NODE_REGISTRY } from './start';

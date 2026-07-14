@@ -43,6 +43,7 @@ export const MIRAP_BASE_NODE_TYPES: StandardNodeType[] = [
   StandardNodeType.MirapMMSIIntersection,
   StandardNodeType.MirapMMSIUnion,
   StandardNodeType.MirapMMSIDifference,
+  StandardNodeType.MirapMMSIExtractor,
 ];
 
 // getEnabledNodeTypes returns the whitelisted node types available in the node
